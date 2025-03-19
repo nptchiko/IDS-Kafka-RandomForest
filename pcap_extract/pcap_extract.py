@@ -222,32 +222,29 @@ def main():
         logger.error(f"{str(e)}")
 
 if __name__ == "__main__":
-    main()
+    # main()
     #1: sercure, 0:insecure
-    # df = pd.read_csv(CSV_FILE)
+    df = pd.read_csv(CSV_FILE)
 
 
     # 1: Secure, 0: Insecure
-    # df['weak_cipher_suite'] = np.where(df['cipher_suite'] == 'Unknown', 0, 1)
-    # df['certificate'] = np.where(df['unstrusted_cert'] == 'Yes', 0, 1)  # Fixed typo
-    # df['expired_certificate'] = np.where(df['expired_certificate'] == 'Expired', 0, 1)
-    # df['downgrade'] = np.where((df['protocol'] == 'HTTP') & (df['hsts'] == 'No'), 0, 1)
-    # df['weak_tls_version'] = np.where((df['protocol'] == 'TLS') & ~df['tls_version'].isin(['0x0303', '0x0302']), 0, 1)
-    # df['sensitive_http'] = np.where((df['sensitive_data'].notna()) & (df['protocol'] == 'HTTP'), 0, 1)
+    df['weak_cipher_suite'] = np.where(df['cipher_suite'] == 'Unknown', 0, 1)
+    df['certificate'] = np.where(df['unstrusted_cert'] == 'Yes', 0, 1)  # Fixed typo
+    df['expired_certificate'] = np.where(df['expire_certificate'] == 'Expired', 0, 1)
+    df['downgrade'] = np.where((df['protocol'] == 'HTTP') & (df['hsts'] == 'No'), 0, 1)
+    df['weak_tls_version'] = np.where((df['protocol'] == 'TLS') & ~df['tls_version'].isin(['0x0303', '0x0302', 'Unknown']), 0, 1)
+    df['sensitive_http'] = np.where((df['sensitive_data'].notna()) & (df['protocol'] == 'HTTP'), 0, 1)
 
-    # df["secure"] = np.where(
-    #     (df['weak_cipher_suite'] == 0) |
-    #     (df['certificate'] == 0) |
-    #     (df['expired_certificate'] == 0) |
-    #     (df['downgrade'] == 0) |
-    #     (df['sensitive_http'] == 0) |
-    #     (df['weak_tls_version'] == 0),
-    #     0,  # Insecure
-    #     1   # Secure
-    # )
+    df["secure"] = np.where(
+        (df['weak_cipher_suite'] == 0) |
+        (df['certificate'] == 0) |
+        (df['expired_certificate'] == 0) |
+        (df['downgrade'] == 0) |
+        (df['sensitive_http'] == 0) |
+        (df['weak_tls_version'] == 0),
+        0,  # Insecure
+        1   # Secure
+    )
 
-    # df = df.drop('sercure', axis=1)
-    # df = df.drop('Unnamed: 0.1', axis=1)
-    # df = df.drop('Unnamed: 0', axis=1)
-    # print(df['secure'].value_counts())
-    # df.to_csv(CSV_FILE)
+    print(df['secure'].value_counts())
+    df.to_csv(CSV_FILE)
