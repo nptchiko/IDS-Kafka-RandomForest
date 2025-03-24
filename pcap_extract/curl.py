@@ -4,22 +4,28 @@ import random
 
 
 unsafe_urls = [
-    "https://client-cert-missing.badssl.com/",
-    "https://3des.badssl.com/",
-    "http://http-login.badssl.com/submit/"
+    "expired.badssl.com",
+    "wrong.host.badssl.com"
+    "self-signed.badssl.com",
+    "untrusted-root.badssl.com",
+    "tls-v1-0.badssl.com",
+    "tls-v1-1.badssl.com",
+    "rc4.badssl.com",
+    "3des.badssl.com",
+    "null.badssl.com",
+    "mixed-content.badssl.com",
+    "mixed-script.badssl.com",
+    "mixed-image.badssl.com",
+    "no-hsts.badssl.com",
+    "http.badssl.com",
+    "https-everywhere.badssl.com"
 ]
 
 
 safe_urls = [
-    "https://sha256.badssl.com/",
-    "https://sha384.badssl.com/",
-    "https://sha512.badssl.com/",
-    "https://rsa2048.badssl.com/",
-    "https://hsts.badssl.com/",
-    "https://mozilla-modern.badssl.com/",
-    "https://ecc256.badssl.com/",
-    "https://tls-v1-2.badssl.com:1012/",
-    "https://tls-v1-3.badssl.com:1013/"
+    "tls-v1-2.badssl.com",
+    "tls-v1-3.badssl.com",
+    "hsts.badssl.com"
 ]
 
 
