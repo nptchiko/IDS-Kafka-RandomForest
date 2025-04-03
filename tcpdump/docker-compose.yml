@@ -1,0 +1,8 @@
+services:
+    tcpdump:
+        network_mode: host
+        volumes:
+            - ./logs:/logs
+        image: kaazing/tcpdump
+        privileged: true 
+        command: [ "-i", "any", "-w", "/logs/webserver.pcap", "-nn"]
