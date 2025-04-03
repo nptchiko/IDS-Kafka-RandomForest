@@ -172,3 +172,5 @@ cython_debug/
 
 #zed
 .ropeproject
+
+tcpdump/logs/
