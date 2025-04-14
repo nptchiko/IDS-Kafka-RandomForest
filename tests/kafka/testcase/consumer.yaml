@@ -1,0 +1,33 @@
+#Comment: Test case for kafka
+#Author Quang Minh
+#Source: https://www.redhat.com/en/topics/automation/what-is-yaml#:~:text=YAML%20is%20a%20human%2Dreadable,is%20for%20data%2C%20not%20documents.
+---
+- id: TC_C01
+  description: Receive a valid message
+  test_case_procedure: Topic zeek_logs contains a message
+  expected_result: Print the message content
+
+- id: TC_C02
+  description: No messages available
+  test_case_procedure: Topic is empty
+  expected_result: No output, no error
+
+- id: TC_C03
+  description: Error in message
+  test_case_procedure: Manually trigger error in poll()
+  expected_result: Print msg.error()
+
+- id: TC_C04
+  description: Cannot connect to Kafka
+  test_case_procedure: Broker address is incorrect
+  expected_result: Raise exception
+
+- id: TC_C05
+  description: Incorrect topic name
+  test_case_procedure: Subscribe to invalid_topic
+  expected_result: No messages received, no error
+
+- id: TC_C06
+  description: Network connection interrupted
+  test_case_procedure: Simulate network disconnection
+  expected_result: Consumer reconnects or retries (depending on configuration)
