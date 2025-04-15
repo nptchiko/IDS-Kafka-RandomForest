@@ -21,13 +21,13 @@
   expected-result: warning
 
 - id: TC_P03
-  description: Send an empty message
+  description: Send utf-8 message
   test_case_procedure:
     topic: zeek_logs
     key: user2
-    value: "b'"
+    value: "Ngô Quang Minh"
     bootstrap_servers: localhost:29092
-  expected-result: warning
+  expected-result: success
 
 - id: TC_P04
   description: Send a message to a non-existent topic

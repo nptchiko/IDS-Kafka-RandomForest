@@ -18,7 +18,6 @@ def mock_kafka_producer():
         return mock_producer
 
 @pytest.mark.parametrize("case", cases, ids=[c["id"] for c in cases])
-@patch("backend.kafka.producer")  
 def test_send_kafka(mock_kafka_producer, case):
     expected = case["expected-result"].lower()
     
