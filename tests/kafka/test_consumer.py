@@ -57,7 +57,10 @@ def test_send_kafka(mock_kafka_consumer, case):
         assert msg is not None
         assert isinstance(msg['key'], bytes)
         assert isinstance(msg['value'], bytes)
+        print('data expected: ', expected)
     elif expected == "no_output":
         assert msg is None
+        print('data expected: ', expected)
     elif expected == "error":
         assert 'error' in msg
+        print('data expected: ', expected)

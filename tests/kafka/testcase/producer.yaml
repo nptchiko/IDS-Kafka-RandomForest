@@ -32,7 +32,7 @@
 - id: TC_P04
   description: Send a message to a non-existent topic
   test_case_procedure:
-    topic: invalid_topic
+    topic: 
     key: user3
     value: abc
     bootstrap_servers: localhost:29092
