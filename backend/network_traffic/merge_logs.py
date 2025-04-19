@@ -31,11 +31,11 @@ def format_csv(input_file):
 df_ssl = format_csv('zeek_logs/ssl.log')
 df_conn = format_csv('zeek_logs/conn.log')
 df_http = format_csv('zeek_logs/http.log')
-df_x509 = format_csv('zeek_logs/x509.log')
+# df_x509 = format_csv('zeek_logs/x509.log')
 
 merged_df = pd.merge(df_conn, df_ssl, on=["ts"], how="outer")
 merged_df = pd.merge(merged_df, df_http, on=["ts"], how="outer")
-merged_df = pd.merge(merged_df, df_x509, on=["ts"], how="outer")
+# merged_df = pd.merge(merged_df, df_x509, on=["ts"], how="outer")
 merged_df = merged_df.map(lambda x: x.strip() if isinstance(x, str) else x)
 
 
