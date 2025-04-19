@@ -1,28 +1,30 @@
 services:
-    tcpdump:
-        network_mode: host
-        volumes:
-            - ./logs:/logs
-        image: kaazing/tcpdump
-        privileged: true 
-        command: [ "-i", "any", "-w", "/logs/webserver.pcap", "-nn"]
+    # tcpdump:
+    #     network_mode: host
+    #     volumes:
+    #         - ./logs:/logs
+    #     image: kaazing/tcpdump
+    #     privileged: true 
+    #     command: [ "-i", "any", "-w", "/logs/webserver.pcap", "-nn"]
         
 
-    curl:
-        build:
-            # context: ..
-            dockerfile: Dockerfile
-        network_mode: host
-        depends_on:
-        - tcpdump
-        command: ["sh", "-c", "python curl.py"]
+    # curl:
+    #     build:
+    #         # context: ..
+    #         dockerfile: Dockerfile
+    #     network_mode: host
+    #     # depends_on:
+    #     # - zeek
+    #     command: ["sh", "-c", "python curl.py"]
 
     zeek:
         image: zeek/zeek
         volumes:
             - ./logs:/logs
-        working_dir: /logs
+        network_mode: host
+        container_name: zeek_container
         depends_on:
-            - tcpdump
-        # command: ["sh", "-c", "zeek -r /logs/webserver.pcap"]
-        entrypoint: ["sh", "-c", "zeek -b -r /logs/webserver.pcap /logs/extract_logs.zeek;"]
+            - curl
+        # command: ["zeek", "-i", "any", "/logs/extract_logs.zeek"]
+        command: ["zeek", "-i", "any"]
+        

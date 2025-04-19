@@ -32,7 +32,7 @@ safe_urls = [
 all_urls = unsafe_urls * 3 + safe_urls
 
 
-end_time = time.time() + 50 * 60
+end_time = time.time() + 2 * 60
 
 while time.time() < end_time:
     url = random.choice(all_urls)
