@@ -5,14 +5,16 @@ services:
             - ./logs:/logs
         image: kaazing/tcpdump
         privileged: true 
+        # command: [ "-i", "any", "-w", "/logs/webserver.pcap", "-nn", "-c", "5000", "touch /logs/done.flag"]
         command: [ "-i", "any", "-w", "/logs/webserver.pcap", "-nn", "-c", "5000"]
+
 
     zeek:
         image: zeek/zeek
         volumes:
             - ./logs:/logs
-            - ./zeek_scripts:/zeek_scripts
-        depends_on:
-            - tcpdump
+        working_dir: /logs
+        # depends_on:
+        #     - tcpdump
         # command: ["sh", "-c", "zeek -b -r /logs/webserver.pcap /zeek_scripts/extract_logs.zeek"]
-        command: ["sh", "-c", "while [ ! -s /logs/webserver.pcap ]; do echo 'Waiting for webserver.pcap...'; sleep 2; done; zeek -b -r /logs/webserver.pcap /zeek_scripts/extract_logs.zeek"]
+        entrypoint: ["sh", "-c", "zeek -b -r /logs/webserver.pcap /logs/extract_logs.zeek;"]
