@@ -1,15 +1,20 @@
 // import React from "react";
 
-const SafeAlert = ({ status }: { status: string }) => (
+interface Secure {
+  id: string;
+  status: string
+}
+
+const SafeAlert = ({ status }: { status: Secure }) => (
 
   <>
     <h2 className="title">Safe status</h2>
     <div className="safe-box">
       <div
         className="safe-sub"
-        style={{ backgroundColor: (status == "safe" ? "green" : "red") }}
+        style={{ backgroundColor: (status.status == "safe" ? "green" : "red") }}
       >
-        <p>{status}</p>
+        <p>{status.status}</p>
 
       </div>
     </div>

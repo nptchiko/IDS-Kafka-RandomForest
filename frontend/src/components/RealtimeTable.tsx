@@ -1,11 +1,16 @@
 // import React from "react";
 
-type Log = {
+interface LogEntry {
+  id: string;
   protocol: string;
   status: string;
-};
+}
 
-const RealtimeLogTable = ({ logs }: { logs: Log[] }) => (
+interface RealtimeTableProps {
+  logs: LogEntry[];
+}
+
+const RealtimeLogTable = ({ logs }: RealtimeTableProps) => (
   <div>
     <h2 className="title">This table show log realtime</h2>
     <table className="w-full table-auto border">
@@ -16,8 +21,8 @@ const RealtimeLogTable = ({ logs }: { logs: Log[] }) => (
         </tr>
       </thead>
       <tbody>
-        {logs.map((log, index) => (
-          <tr key={index}>
+        {logs.map((log) => (
+          <tr key={log.id}>
             <td className="border px-4 py-1">{log.protocol}</td>
             <td className="border px-4 py-1">{log.status}</td>
           </tr>

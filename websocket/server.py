@@ -21,17 +21,17 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 MONGO_URL = 'mongodb://admin:admin@localhost:27017/test?authSource=admin'
 MONGO_DB = 'test'
-MONGO_COLLECTION = 'processed_data'
+# MONGO_COLLECTION = 'processed_data'
 
 @app.route('/')
 def health_check():
     return jsonify({"status": "running"}), 200
 
-def fetch_mongo_data():
+def fetch_mongo_data(collection_name):
     try:
         client = MongoClient(MONGO_URL)
         db = client[MONGO_DB]
-        collection = db[MONGO_COLLECTION]
+        collection = db[collection_name]
         data = list(collection.find({}))
 
         # Convert ObjectId to str
@@ -49,8 +49,29 @@ def fetch_mongo_data():
 @socketio.on('connect')
 def handle_connect(auth=None):
     print("Client connected")   
-    initial_data = fetch_mongo_data()
-    print(f"Fetched initial data: {initial_data}")
+    tls_pie_data = fetch_mongo_data("tls_pie_data")
+    status_info = fetch_mongo_data("status_info")
+    missed_bytes_data = fetch_mongo_data("missed_bytes_data")
+    logs_data = fetch_mongo_data("logs_data")
+
+    print("\nTLS Pie Data:", tls_pie_data)
+    print("\nMissed Bytes Data:", missed_bytes_data)
+    print("\nLogs Data:", logs_data)
+    current_status = None
+    if status_info and len(status_info) > 0 and 'current_status' in status_info[0]:
+        print("\nStatus info:", status_info[0])
+        current_status = status_info[0]['current_status']
+    else:
+        print("Warning: Could not retrieve 'current_status' from status_info.")
+
+    initial_data = {
+        'tlsPieData': tls_pie_data,
+        'statusInfo': current_status,
+        'missedBytesData': missed_bytes_data,
+        'logsData': logs_data
+    }
+    print("\nInitial data: ", initial_data)
+
     socketio.emit('initial_data', {'data': initial_data})
     print("Emitted initial_data event")
 

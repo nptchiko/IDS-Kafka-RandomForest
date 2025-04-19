@@ -20,7 +20,7 @@ services:
       - MONGO_COLLECTION=processed_data
     volumes:
       # seeding scripts
-      # - ./mongo-entrypoint:/docker-entrypoint-initdb.d
+      - ./mongo-entrypoint:/docker-entrypoint-initdb.d
       # named volumes
       - mongodb:/data/db
       - mongoconfig:/data/configdb
