@@ -1,35 +1,47 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import "./assets/css/style.css"
+import TlsPieChart from "./components/TlsPieChart";
+import SafeAlert from "./components/SafeAlert";
+import MissedBytesChart from "./components/MissedBytesChart";
+import RealtimeTable from "./components/RealtimeTable";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [status, setStatus] = useState("");
+  const [logs, setLogs] = useState<Array<{ protocol: string; status: string }>>([]);
+
+  useEffect(() => {
+    setStatus("safe")
+  }, [])
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLogs((prev) => [
+        ...prev,
+        { protocol: "TLS1.2", status: "Safe" },
+      ]);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="container">
+      <div className="row">
+        <div className="col box">
+          <TlsPieChart />
+        </div>
+        <div className="col box flex justify-center items-center">
+          <SafeAlert status={status} />
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+      <div className="row">
+        <div className="col box">
+          <MissedBytesChart />
+        </div>
+        <div className="col box">
+          <RealtimeTable logs={logs} />
+        </div>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
