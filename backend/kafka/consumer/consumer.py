@@ -52,6 +52,7 @@ def stream():
                 message = message_queue.get(timeout=1)
                 yield f"data: {message}\n\n"
             except queue.Empty:
+                print("Queue empty, yielding waiting")
                 yield f"waiting\n\n"  # Keep connection alive
     return Response(event_stream(), mimetype="text/event-stream")
 

@@ -96,8 +96,5 @@ while time.time() < end_time:
     print(f"[+] Running: {command}")
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
 
-
-
-
     time.sleep(random.randint(10, 30))
 >>>>>>> miku

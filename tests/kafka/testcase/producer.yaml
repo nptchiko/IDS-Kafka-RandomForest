@@ -1,0 +1,57 @@
+#Comment: Test case for kafka
+#Author Quang Minh
+#Source: https://www.redhat.com/en/topics/automation/what-is-yaml#:~:text=YAML%20is%20a%20human%2Dreadable,is%20for%20data%2C%20not%20documents.
+---
+- id: TC_P01
+  description: Send a valid message with a key
+  test_case_procedure:
+    topic: zeek_logs
+    key: user1
+    value: login success
+    bootstrap_servers: localhost:29092
+  expected-result: success
+
+- id: TC_P02
+  description: Send a message without a key
+  test_case_procedure:
+    topic: zeek_logs
+    key: unknown
+    value: hello
+    bootstrap_servers: localhost:29092
+  expected-result: warning
+
+- id: TC_P03
+  description: Send utf-8 message
+  test_case_procedure:
+    topic: zeek_logs
+    key: user2
+    value: "Ngô Quang Minh"
+    bootstrap_servers: localhost:29092
+  expected-result: success
+
+- id: TC_P04
+  description: Send a message to a non-existent topic
+  test_case_procedure:
+    topic: 
+    key: user3
+    value: abc
+    bootstrap_servers: localhost:29092
+  expected-result: error
+
+- id: TC_P05
+  description: Send a message to an invalid Kafka broker address
+  test_case_procedure:
+    topic: zeek_logs
+    key: user4
+    value: abc
+    bootstrap_servers: wronghost:9999
+  expected-result: exception
+
+- id: TC_P06
+  description: Send a message with a null value
+  test_case_procedure:
+    topic: zeek_logs
+    key: abc
+    value: null
+    bootstrap_servers: localhost:29092
+  expected-result: exception
