@@ -6,26 +6,15 @@ import MissedBytesChart from "./components/MissedBytesChart";
 import RealtimeTable from "./components/RealtimeTable";
 import Socket from "./socket/socket";
 
-// interface RealTimeData {
-//   id: number;
-//   key: string;
-//   value: string;
-// }
-
-
 function App() {
-  // const [data, setData] = useState<RealTimeData | null>(null)
-
-  // const [logs, setLogs] = useState<Array<{ protocol: string; status: string }>>([]);
-
   const [logsData, setLogsData] = useState<Array<{ id: string, protocol: string; status: string }>>([]);
   const [statusInfo, setStatusInfo] = useState<{ id: string, status: string } | null>(null);
   const [missedBytesData, setMissedBytesData] = useState<Array<{ id: string, time: string; missed_bytes: number }>>([]);
   const [tlsPieData, setTlsPieData] = useState<Array<{ id: string, name: string; value: number }>>([]);
 
   useEffect(() => {
-    Socket.on('initial_data', (payload) => {
-      console.log('Received initial data:', payload);
+    Socket.on('status_data', (payload) => {
+      console.log('Received status data:', payload);
 
       if (payload && payload.data) {
         setLogsData(payload.data.logsData || []);
@@ -36,7 +25,10 @@ function App() {
     });
 
     return () => {
-      Socket.off('initial_data');
+      Socket.off('connect', () => {console.log("Connect successfully.")});
+      Socket.off('disconnect', () => {console.log("Disconnect")});
+      Socket.off('connect_error', () => {console.log("Error")});
+      Socket.off('status_data');
     };
   }, []);
 
