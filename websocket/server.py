@@ -3,14 +3,12 @@ from flask import Flask, jsonify
 from flask_socketio import SocketIO
 from pymongo import MongoClient
 from datetime import datetime
-import logging
+# import logging
 from bson import ObjectId
 import threading
 
 
 app = Flask(__name__)
-logging.getLogger('socketio').setLevel(logging.DEBUG)
-logging.getLogger('engineio').setLevel(logging.DEBUG)
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
@@ -59,7 +57,7 @@ def watch_mongo_changes():
         for change in stream:
             print('MongoDB change detected:', change)
             updated_data = fetch_mongo_data()  
-            socketio.emit('updated_data', {'data': updated_data}, broadcast=True)  
+            socketio.emit("update_data",updated_data,  broadcast=True)
 
 def start_change_stream():
     threading.Thread(target=watch_mongo_changes, daemon=True).start()
@@ -67,8 +65,8 @@ def start_change_stream():
 @socketio.on('connect')
 def handle_connect(auth=None): 
     initial_data = fetch_mongo_data()
-
-    socketio.emit('initial_data', {'data': initial_data})
+    socketio.emit("initial_data",initial_data)
+    print("Connect ", initial_data)
 
 
 @socketio.on('disconnect')
@@ -77,9 +75,11 @@ def handle_disconnect():
 
 @socketio.on('refresh')
 def handle_refresh():
-    updated_data = fetch_mongo_data()
-    socketio.emit('updated_data', {'data': updated_data})
+    updated_data = watch_mongo_changes()
+    socketio.emit("update_data",updated_data,  broadcast=True)
+    print("Refresh ", updated_data)
 
 if __name__ == '__main__':
     print("Server starting")
+    # threading.Thread(target=watch_mongo_changes, daemon=True).start()
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
