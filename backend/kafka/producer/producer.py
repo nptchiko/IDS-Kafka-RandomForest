@@ -30,7 +30,7 @@ def send_kafka(data: dict):
             callback=delivery_result
         )
         producer.poll(0)
-        return {"stauts": "success"}
+        return {"status": "success"}
     except Exception as e:
         print(f"Error in sending: {e}")
 

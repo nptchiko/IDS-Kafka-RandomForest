@@ -1,0 +1,57 @@
+#Comment: Test case for kafka consumer
+#Author Quang Minh
+#Source: https://www.redhat.com/en/topics/automation/what-is-yaml#:~:text=YAML%20is%20a%20human%2Dreadable,is%20for%20data%2C%20not%20documents.
+---
+- id: TC_C01
+  description: Receive a valid message
+  test_case_procedure:
+    topic: zeek_logs
+    key: test_key
+    value: test data
+    bootstrap_servers: localhost:29092
+  expected-result: success
+
+- id: TC_C02
+  description: No messages available
+  test_case_procedure:
+    topic: zeek_logs
+    key: null
+    value: null
+    bootstrap_servers: localhost:29092
+  expected-result: no_output
+
+- id: TC_C03
+  description: Error in message
+  test_case_procedure:
+    topic: zeek_logs
+    key: test_key
+    value: null
+    bootstrap_servers: localhost:29092
+  expected-result: error
+
+- id: TC_C04
+  description: Cannot connect to Kafka
+  test_case_procedure:
+    topic: zeek_logs
+    key: test_key
+    value: '{"test": "data"}'
+    bootstrap_servers: wronghost:9999
+  expected-result: exception
+
+- id: TC_C05
+  description: Incorrect topic name
+  test_case_procedure:
+    topic: invalid_topic
+    key: null
+    value: null
+    bootstrap_servers: localhost:29092
+  expected-result: no_output
+
+# - id: TC_C06
+#   description: Network connection interrupted
+#   test_case_procedure:
+#     topic: zeek_logs
+#     key: test_key
+#     value: '{"test": "data"}'
+#     bootstrap_servers: localhost:29092
+#   expected-result: exception
