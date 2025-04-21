@@ -4,7 +4,7 @@
 //     roles: ["root"]
 // });
 // Kết nối đến database 'test'
-db = db.getSiblingDB('test');
+db = db.getSiblingDB('admin');
 
 // Chèn dữ liệu TLS Pie vào collection 'tls_pie_data'
 db.tls_pie_data.insertMany([

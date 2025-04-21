@@ -21,6 +21,7 @@ docker down -v my-mongodb
 Now follow this command.
 ```
 docker compose up -d
+docker ps -a
 ```
 Everything that OK.
 Let's check database in mongosh
