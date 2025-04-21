@@ -15,8 +15,8 @@ const TlsPieChart = ({ pieData }: { pieData: TlsPieData[] }) => {
 
   useEffect(() => {
     if (pieData && pieData.length > 0) {
-      setInternalPieData((prevData) => [...prevData, ...pieData]);
-      // setInternalPieData(pieData)
+      // setInternalPieData((prevData) => [...prevData, ...pieData]);
+      setInternalPieData(pieData)
       console.log('TlsPieChart - Dữ liệu cập nhật:', [...internalPieData, ...pieData]);
     }
   }, [pieData]);
