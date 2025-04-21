@@ -5,9 +5,6 @@ from pymongo import MongoClient
 from datetime import datetime
 import logging
 from bson import ObjectId
-import threading
-import time
-
 
 app = Flask(__name__)
 logging.getLogger('socketio').setLevel(logging.DEBUG)
@@ -83,28 +80,24 @@ def emit_data():
     socketio.emit('status_data', {'data': status_data})
 
 def poll_mongo_changes():
-
-    client = MongoClient(MONGO_URL)
-    db = client[MONGO_DB]
-
     while True:
         try:
             emit_data()
-
-            time.sleep(5)  
+            socketio.sleep(5)  
         except Exception as e:
             print(f"Polling error: {e}")
-            time.sleep(5)
+            socketio.sleep(5)
 
 
 
 def polling_watch():
-    threading.Thread(target=poll_mongo_changes, daemon=True).start()
+    socketio.start_background_task(poll_mongo_changes)
 
 @socketio.on('connect')
 def handle_connect(auth=None):
-    polling_watch()
     print("Client connected")   
+    # emit_data()
+    polling_watch()
 
 @socketio.on('disconnect')
 def handle_disconnect():

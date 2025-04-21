@@ -13,34 +13,30 @@ function App() {
   const [tlsPieData, setTlsPieData] = useState<Array<{ id: string, name: string; value: number }>>([]);
 
   useEffect(() => {
+    Socket.on('connect', () => console.log("✅ Connected to server"));
+    Socket.on('disconnect', () => console.log("❌ Disconnected"));
+    Socket.on('connect_error', (err) => console.log("⚠️ Socket error:", err));
+
     Socket.on('status_data', (payload) => {
       console.log('Received status data:', payload);
 
-      if (payload && payload.data) {
-        setLogsData(payload.data.logsData || []);
-        setMissedBytesData(payload.data.missedBytesData.map((item: { timestamp: any; missed_bytes: any; }) => ({ time: item.timestamp, missed: item.missed_bytes })) || []);
-        setStatusInfo(payload.data.statusInfo || null);
-        setTlsPieData(payload.data.tlsPieData || []);
-      }
+      setTimeout(() => {
+        if (payload && payload.data) {
+          setLogsData(payload.data.logsData || []);
+          setMissedBytesData(payload.data.missedBytesData.map((item: { timestamp: any; missed_bytes: any; }) => ({ time: item.timestamp, missed: item.missed_bytes })) || []);
+          setStatusInfo(payload.data.statusInfo || null);
+          setTlsPieData(payload.data.tlsPieData || []);
+        }
+      }, 500);
     });
 
     return () => {
-      Socket.off('connect', () => {console.log("Connect successfully.")});
-      Socket.off('disconnect', () => {console.log("Disconnect")});
-      Socket.off('connect_error', () => {console.log("Error")});
+      Socket.off('connect', () => { console.log("Connect successfully.") });
+      Socket.off('disconnect', () => { console.log("Disconnect") });
+      Socket.off('connect_error', () => { console.log("Error") });
       Socket.off('status_data');
     };
   }, []);
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setLogs((prev) => [
-  //       ...prev,
-  //       { protocol: "TLS1.2", status: "Safe" },
-  //     ]);
-  //   }, 5000);
-  //   return () => clearInterval(interval);
-  // }, []);
 
   return (
     <div className="container">
