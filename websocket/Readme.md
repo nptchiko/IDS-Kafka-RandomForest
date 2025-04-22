@@ -16,3 +16,9 @@ pip install -r requirement.txt
 ```
 python3 server.py
 ```
+
+## Server running:
+
+Server runs with port 5000.
+
+With 4 collections of data: __tls_pie_data__, __status_info__, __missed_bytes_data__, __missed_bytes_data__. Each collection stand for one information that socket server sent to UI.

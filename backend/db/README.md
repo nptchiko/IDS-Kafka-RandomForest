@@ -36,3 +36,4 @@ ___Some command for check database___
 show collections # Check all collection
 db.<collection>.find().pretty() # Check all document in collection.
 ```
+
