@@ -5,6 +5,7 @@ from pymongo import MongoClient
 from datetime import datetime
 import logging
 from bson import ObjectId
+from socket_service import SocketService
 
 app = Flask(__name__)
 logging.getLogger('socketio').setLevel(logging.DEBUG)
@@ -69,6 +70,11 @@ def emit_data():
     else:
         print("Warning: Could not retrieve 'current_status' from status_info.")
 
+    new_tls_pie = SocketService.extract_new_records("tls_pie_data", tls_pie_data)
+    new_status_info = SocketService.extract_new_records("status_info", status_info)
+    new_missed_bytes = SocketService.extract_new_records("missed_bytes_data", missed_bytes_data)
+    new_logs = SocketService.extract_new_records("logs_data", logs_data)
+
     status_data = {
         'tlsPieData': tls_pie_data,
         'statusInfo': current_status,
@@ -77,7 +83,21 @@ def emit_data():
     }
     print("\nStatus data: ", status_data)
 
-    socketio.emit('status_data', {'data': status_data})
+    # Compare with previous data
+    if SocketService.is_data_changed(status_data):
+        if any([new_logs, new_tls_pie, new_missed_bytes, new_status_info]):
+            status_data = {
+                'tlsPieData': new_tls_pie,
+                'statusInfo': new_status_info,
+                'missedBytesData': new_missed_bytes,
+                'logsData': new_logs
+            }
+        socketio.emit('status_data', {'data': status_data})
+        print("Data was changed, emit new data")
+    else:
+        print("No data change.")
+        
+
 
 def poll_mongo_changes():
     while True:
