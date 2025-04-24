@@ -1,16 +1,10 @@
 {
-    "name": "log-streaming-connector",
+    "name": "log-streaming",
     "config": {
-        "name": "log-streaming-connector",
+        "name": "log-streaming",
         "connector.class": "org.apache.kafka.connect.file.FileStreamSourceConnector",
         "tasks.max": "1",
-        "input.path": "/zeek/logs",
-        "input.file.pattern": "*.log",
-        "topic": "zeek-logs", 
-        "value.converter": "org.apache.kafka.connect.storage.StringConverter",
-        "empty.poll.wait.ms": 100,
-        "batch.size": 1000
+        "file": "/zeek/logs/ssl.log",
+        "topic": "zeek-logs"
     }
-}'
-
-
+}

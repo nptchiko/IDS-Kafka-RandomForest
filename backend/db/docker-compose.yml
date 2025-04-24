@@ -25,8 +25,7 @@ services:
       - mongodb:/data/db
       - mongoconfig:/data/configdb
     networks:
-      - mongo_net
-
+      - kafka_network 
   # my-mongoclient:
   #   # build will get tagged with 'image'
   #   build: ./my-mongoclient
@@ -43,10 +42,10 @@ services:
   #     - my-mongodb
   #
 volumes:
-  # default dir on Ubuntu: /var/lib/docker/volumes
+  # defakult dir on Ubuntu: /var/lib/docker/volumes
   mongodb:
   mongoconfig:
 
 networks:
-  mongo_net:
-    driver: bridge
+    kafka_network:
+      name: kafka_

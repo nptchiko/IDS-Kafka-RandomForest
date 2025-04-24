@@ -21,7 +21,7 @@ services:
         image: zeek/zeek
         volumes:
             - ./logs/extract_logs.zeek:/usr/share/zeek/site/extract_logs.zeek
-            - ./logs:/zeek/logs
+            - ../data/logs/:/zeek/logs
         cap_add:
             - NET_RAW
         container_name: zeek_container

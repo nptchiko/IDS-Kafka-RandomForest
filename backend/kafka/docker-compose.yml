@@ -61,17 +61,20 @@ services:
          - kafka_network 
     command: "bash -c 'echo Waiting for Kafka to be ready... && \
                kafka-topics --create --topic zeek-logs --partitions 3 --replication-factor 1 --if-not-exists --bootstrap-server kafka:9092 && \
-               kafka-topics --create --topic alert --partitions 3 --replication-factor 1 --if-not-exists --bootstrap-server kafka:9092 && \
+               kafka-topics --create --topic alert --partitions 3 --replication-factor 1 --if-not-exists --bootstrap-server kafka:9092 && \ 
                kafka-console-consumer --bootstrap-server kafka:9092 --topic zeek-logs --from-begining --group zeek-log-consumer-group'"
 
-  connect:
-    image: confluentinc/cp-kafka-connect:5.5.0
+  connect: 
     container_name: connect
+    image: confluentinc/cp-kafka-connect:5.5.0
     hostname: connect
+    build: 
+      context: ./kafka-connect/  
+      dockerfile: Dockerfile 
     ports:
         - "8083:8083"
     volumes:
-      - ../../tcpdump/logs:/zeek/logs
+      - ../../data:/zeek
     networks:
       - kafka_network
     environment:
@@ -93,6 +96,15 @@ services:
       CONNECT_PLUGIN_PATH: /usr/share/java
       CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
       CONNECT_LOG4J_LOGGERS: org.reflections=ERROR
+
+    command:
+      - bash
+      - -c 
+      - |
+        confluent-hub install --no-prompt --component-dir /usr/share/java jcustenborder/kafka-connect-spooldir:1.0.41
+        confluent-hub install --no-prompt --component-dir /usr/share/java mongodb/kafka-connect-mongodb:1.11.2
+        /etc/confluent/docker/run
+
   # schema-registry:
   #   image: confluentinc/cp-schema-registry:7.2.1
   #   ports:
