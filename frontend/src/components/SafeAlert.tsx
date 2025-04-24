@@ -15,7 +15,6 @@ const SafeAlert = ({ status }: { status: Secure }) => (
         style={{ backgroundColor: (status.status == "safe" ? "green" : "red") }}
       >
         <p>{status.status}</p>
-
       </div>
     </div>
   </>
