@@ -1,0 +1,7 @@
+services:
+  zeek-log-merger:
+    build: . 
+    volumes:
+      - ../../data/logs:/logs 
+    command: /logs/conn.log /logs/http.log /logs/ssl.log -o /logs/merged.log -i 5
+    restart: unless-stopped

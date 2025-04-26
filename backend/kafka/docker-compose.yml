@@ -100,8 +100,7 @@ services:
     command:
       - bash
       - -c 
-      - |
-        confluent-hub install --no-prompt --component-dir /usr/share/java jcustenborder/kafka-connect-spooldir:1.0.41
+      - | 
         confluent-hub install --no-prompt --component-dir /usr/share/java mongodb/kafka-connect-mongodb:1.11.2
         /etc/confluent/docker/run
 
@@ -123,19 +122,9 @@ services:
   #
   #
 
-  # bugging  
-  # kafka-consumer:
-  #   build: ./consumer
-  #   container_name: kafka-consumer
-  #   ports:
-  #     - 5001:5001
-  #   networks:
-  #       - kafka_network
-  #   depends_on:
-  #       - kafka
-  #
 networks:
   kafka_network:
     name: kafka_network
+    external: false
 
 

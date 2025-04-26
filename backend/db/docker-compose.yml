@@ -10,6 +10,7 @@
 services:
   my-mongodb:
     image: mongo:latest
+    hostname: mongodb
     container_name: my-mongodb
     ports:
       - 27017:27017
@@ -48,4 +49,5 @@ volumes:
 
 networks:
     kafka_network:
-      name: kafka_
+      name: kafka_network
+      external: true

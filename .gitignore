@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -349,5 +349,6 @@ cython_debug/
 #zed
 .ropeproject
 
-tcpdump/logs/
->>>>>>> miku
+./zeek/logs/*
+!zeek/logs/extract_logs.zeek
+
