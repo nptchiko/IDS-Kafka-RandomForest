@@ -14,7 +14,7 @@ kafka_config = {
 }
 
 consumer = Consumer(kafka_config)
-topic = ['zeek_logs']
+topic = ['zeek-logs']
 consumer.subscribe(topic)
 
 message_queue = queue.Queue()

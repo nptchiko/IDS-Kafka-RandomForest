@@ -1,0 +1,12 @@
+{
+  "name": "log-streaming",
+  "config": {
+    "connector.class": "org.apache.kafka.connect.file.FileStreamSourceConnector",
+    "tasks.max": 1,
+    "file": "/zeek/logs/merged.log",
+    "topic": "zeek-logs",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": false
+  }
+}
