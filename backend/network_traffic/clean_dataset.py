@@ -3,7 +3,7 @@ import numpy as np
 from datetime import datetime
 
 
-df = pd.read_csv('dataset.csv', dtype=str, low_memory=False)
+df = pd.read_csv('/data/logs/merged.log', dtype=str, low_memory=False)
 # feature = ['proto', 'service', 'id.resp_p', 'missed_bytes', 'version', 'cipher', 'curve',
 #     'resumed', 'last_alert', 'established', 'sni_matches_cert', 'username', 'password',
 #     'certificate.not_valid_before', 'certificate.not_valid_after', 'certificate.key_alg',
