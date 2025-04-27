@@ -1,0 +1,18 @@
+services:
+    ml-model:
+    # depends_on:
+    #   - kafka
+    #   - zeek
+
+      build: 
+        context: .
+      
+      volumes:
+          - .:/app/model
+
+      environment:
+          - BOOTSTRAP_SERVERS=kafka:9092
+          - INPUT_TOPIC=zeek-logs
+          - OUTPUT_TOPIC=alert
+          - MODEL_PATH=/app/models/RandomForestModel.sav
+

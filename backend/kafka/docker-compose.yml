@@ -68,9 +68,9 @@ services:
     container_name: connect
     image: confluentinc/cp-kafka-connect:5.5.0
     hostname: connect
-    build: 
-      context: ./kafka-connect/  
-      dockerfile: Dockerfile 
+    build:
+       context: ./kafka-connect/
+       dockerfile: Dockerfile
     ports:
         - "8083:8083"
     volumes:
@@ -98,11 +98,11 @@ services:
       CONNECT_LOG4J_LOGGERS: org.reflections=ERROR
 
     command:
-      - bash
-      - -c 
-      - | 
-        confluent-hub install --no-prompt --component-dir /usr/share/java mongodb/kafka-connect-mongodb:1.11.2
-        /etc/confluent/docker/run
+        - bash
+        - -c 
+        - | 
+          confluent-hub install --no-prompt --component-dir /usr/share/java mongodb/kafka-connect-mongodb:1.11.2
+          /etc/confluent/docker/run
 
   # schema-registry:
   #   image: confluentinc/cp-schema-registry:7.2.1
