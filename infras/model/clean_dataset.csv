@@ -1,0 +1,2 @@
+,missed_bytes,version,cipher,curve,resumed,last_alert,established,sni_matches_cert,username,password,certificate.not_valid_before,certificate.not_valid_after,certificate.sig_alg,certificate.key_length,certificate.key
+0,0,1,1,1,1,,1,1,,,,,1,,
