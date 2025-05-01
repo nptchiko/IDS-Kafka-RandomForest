@@ -3,7 +3,15 @@ import numpy as np
 from datetime import datetime
 
 
+<<<<<<< HEAD
 df = pd.read_json('dataset.json', lines=True)
+=======
+df = pd.read_csv('/data/logs/merged.log', dtype=str, low_memory=False)
+# feature = ['proto', 'service', 'id.resp_p', 'missed_bytes', 'version', 'cipher', 'curve',
+#     'resumed', 'last_alert', 'established', 'sni_matches_cert', 'username', 'password',
+#     'certificate.not_valid_before', 'certificate.not_valid_after', 'certificate.key_alg',
+#     'certificate.sig_alg', 'certificate.key_length']
+>>>>>>> 9a8a9191003dd9cb73090c8aed2e9fe530e2714f
 
 print(df.head())
 feature = ['missed_bytes', 	'version', 	'cipher', 	'curve', 'resumed', 'last_alert', 'established', 'sni_matches_cert', 'username', 'password',
