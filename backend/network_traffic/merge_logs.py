@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 
 
+PATH = '../../data/logs/'
+
+
 def format_csv(input_file):
     with open(input_file, "r", encoding="utf-8") as file:
         lines = file.readlines()
@@ -30,9 +33,9 @@ def format_csv(input_file):
     return df
 
 
-df_ssl = format_csv('zeek_logs/ssl.log')
-df_conn = format_csv('zeek_logs/conn.log')
-df_http = format_csv('zeek_logs/http.log')
+df_ssl = format_csv(PATH + 'ssl.log')
+df_conn = format_csv(PATH + 'conn.log')
+df_http = format_csv(PATH + 'http.log')
 # df_x509 = format_csv('zeek_logs/x509.log')
 
 merged_df = pd.merge(df_conn, df_ssl, on=["ts"], how="outer")

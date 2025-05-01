@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 import pyshark
 import subprocess
 import pandas as pd
@@ -11,7 +11,8 @@ import os
 from typing import Dict, List, Optional, Tuple, Any
 
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -19,6 +20,7 @@ PCAP_FILE = "badssl2.pcap"
 CSV_FILE = "output1.csv"
 OPENSSL_PATH = r"C:\Program Files\OpenSSL-Win64\bin\openssl.exe"
 TIMEOUT = 5
+
 
 def get_certificate_info(server_name: str) -> Dict[str, str]:
     """Lấy thông tin chứng chỉ SSL từ server sử dụng OpenSSL."""
@@ -53,7 +55,6 @@ def get_certificate_info(server_name: str) -> Dict[str, str]:
 
         output = result.stdout
 
-
         info = {
             "cipher_suite": "Unknown",
             "unstrusted_cert": "No",
@@ -66,10 +67,8 @@ def get_certificate_info(server_name: str) -> Dict[str, str]:
             if cipher_match:
                 info["cipher_suite"] = cipher_match.group(1)
 
-
             if "self-signed certificate" in output or "self-signed certificate in certificate chain" in output:
                 info["unstrusted_cert"] = "Yes"
-
 
             if "certificate has expired" in output:
                 info["expire_certificate"] = "Expired"
@@ -84,12 +83,14 @@ def get_certificate_info(server_name: str) -> Dict[str, str]:
             "expire_certificate": "Unknown"
         }
     except Exception as e:
-        logger.error(f"Lỗi khi lấy thông tin chứng chỉ cho {server_name}: {str(e)}")
+        logger.error(f"Lỗi khi lấy thông tin chứng chỉ cho {
+                     server_name}: {str(e)}")
         return {
             "cipher_suite": f"Error: {str(e)[:50]}",
             "unstrusted_cert": "Unknown",
             "expire_certificate": "Unknown"
         }
+
 
 def process_packet(pkt: Any) -> Optional[List[Any]]:
 
@@ -118,7 +119,8 @@ def process_packet(pkt: Any) -> Optional[List[Any]]:
             packet_data["host"] = getattr(pkt.http, "host", "N/A")
             packet_data["url"] = getattr(pkt.http, "request_uri", "N/A")
             packet_data["method"] = getattr(pkt.http, "request_method", "N/A")
-            packet_data["content_type"] = getattr(pkt.http, "content_type", "N/A")
+            packet_data["content_type"] = getattr(
+                pkt.http, "content_type", "N/A")
 
             # Kiểm tra HSTS (Strict-Transport-Security)
             packet_data["hsts"] = "No"
@@ -131,16 +133,19 @@ def process_packet(pkt: Any) -> Optional[List[Any]]:
             if packet_data["content_type"] == "application/x-www-form-urlencoded" and hasattr(pkt.http, "file_data"):
                 try:
                     hex_data = pkt.http.file_data.replace(":", "")
-                    packet_data["sensitive_data"] = binascii.unhexlify(hex_data).decode('utf-8', errors='ignore')
+                    packet_data["sensitive_data"] = binascii.unhexlify(
+                        hex_data).decode('utf-8', errors='ignore')
                 except Exception as e:
-                    packet_data["sensitive_data"] = f"Decode Error: {str(e)[:50]}"
+                    packet_data["sensitive_data"] = f"Decode Error: {str(e)[
+                        :50]}"
 
         # Xử lý TLS
         elif "TLS" in pkt:
             packet_data["protocol"] = "TLS"
-            packet_data["server_name"] = getattr(pkt.tls, "handshake_extensions_server_name", "Unknown")
-            packet_data["tls_version"] = getattr(pkt.tls, "handshake_version", "Unknown")
-
+            packet_data["server_name"] = getattr(
+                pkt.tls, "handshake_extensions_server_name", "Unknown")
+            packet_data["tls_version"] = getattr(
+                pkt.tls, "handshake_version", "Unknown")
 
         return [
             packet_data["protocol"],
@@ -163,13 +168,12 @@ def process_packet(pkt: Any) -> Optional[List[Any]]:
         logger.error(f"{str(e)}")
         return None
 
+
 def main():
     try:
         logger.info(f"{PCAP_FILE}")
 
-
         cap = pyshark.FileCapture(PCAP_FILE, display_filter="http or tls")
-
 
         data = []
         for pkt in cap:
@@ -187,11 +191,8 @@ def main():
             "tls_version", "expire_certificate", "hsts"
         ])
 
-
         unique_servers = df[df['protocol'] == 'TLS']['server_name'].unique()
         server_info = {}
-
-
 
         with ThreadPoolExecutor(max_workers=10) as executor:
             future_to_server = {
@@ -206,7 +207,6 @@ def main():
                 except Exception as e:
                     logger.error(f"Lỗi khi xử lý {server}: {str(e)}")
 
-
         for index, row in df[df['protocol'] == 'TLS'].iterrows():
             server = row['server_name']
             if server in server_info:
@@ -215,26 +215,29 @@ def main():
                 df.at[index, 'unstrusted_cert'] = info['unstrusted_cert']
                 df.at[index, 'expire_certificate'] = info['expire_certificate']
 
-
         df.to_csv(CSV_FILE, index=False)
-
 
     except Exception as e:
         logger.error(f"{str(e)}")
 
+
 if __name__ == "__main__":
     # main()
-    #1: sercure, 0:insecure
+    # 1: sercure, 0:insecure
     df = pd.read_csv(CSV_FILE)
-
 
     # 1: Secure, 0: Insecure
     df['weak_cipher_suite'] = np.where(df['cipher_suite'] == 'Unknown', 0, 1)
-    df['certificate'] = np.where(df['unstrusted_cert'] == 'Yes', 0, 1)  # Fixed typo
-    df['expired_certificate'] = np.where(df['expire_certificate'] == 'Expired', 0, 1)
-    df['downgrade'] = np.where((df['protocol'] == 'HTTP') & (df['hsts'] == 'No'), 0, 1)
-    df['weak_tls_version'] = np.where((df['protocol'] == 'TLS') & ~df['tls_version'].isin(['0x0303', '0x0302', 'Unknown']), 0, 1)
-    df['sensitive_http'] = np.where((df['sensitive_data'].notna()) & (df['protocol'] == 'HTTP'), 0, 1)
+    df['certificate'] = np.where(
+        df['unstrusted_cert'] == 'Yes', 0, 1)  # Fixed typo
+    df['expired_certificate'] = np.where(
+        df['expire_certificate'] == 'Expired', 0, 1)
+    df['downgrade'] = np.where(
+        (df['protocol'] == 'HTTP') & (df['hsts'] == 'No'), 0, 1)
+    df['weak_tls_version'] = np.where((df['protocol'] == 'TLS') & ~df['tls_version'].isin([
+                                      '0x0303', '0x0302', 'Unknown']), 0, 1)
+    df['sensitive_http'] = np.where(
+        (df['sensitive_data'].notna()) & (df['protocol'] == 'HTTP'), 0, 1)
 
     df["secure"] = np.where(
         (df['weak_cipher_suite'] == 0) |
@@ -249,20 +252,10 @@ if __name__ == "__main__":
 
     print(df['secure'].value_counts())
     df.to_csv(CSV_FILE)
-=======
-import pyshark
-import subprocess
-import pandas as pd
-import re
-import binascii
-import numpy as np
-import logging
-from concurrent.futures import ThreadPoolExecutor
-import os
-from typing import Dict, List, Optional, Tuple, Any
 
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -270,6 +263,7 @@ PCAP_FILE = "badssl2.pcap"
 CSV_FILE = "dataset.csv"
 OPENSSL_PATH = r"C:\Program Files\OpenSSL-Win64\bin\openssl.exe"
 TIMEOUT = 5
+
 
 def get_certificate_info(server_name: str) -> Dict[str, str]:
     """Lấy thông tin chứng chỉ SSL từ server sử dụng OpenSSL."""
@@ -304,7 +298,6 @@ def get_certificate_info(server_name: str) -> Dict[str, str]:
 
         output = result.stdout
 
-
         info = {
             "cipher_suite": "Unknown",
             "unstrusted_cert": "No",
@@ -317,10 +310,8 @@ def get_certificate_info(server_name: str) -> Dict[str, str]:
             if cipher_match:
                 info["cipher_suite"] = cipher_match.group(1)
 
-
             if "self-signed certificate" in output or "self-signed certificate in certificate chain" in output:
                 info["unstrusted_cert"] = "Yes"
-
 
             if "certificate has expired" in output:
                 info["expire_certificate"] = "Expired"
@@ -335,12 +326,14 @@ def get_certificate_info(server_name: str) -> Dict[str, str]:
             "expire_certificate": "Unknown"
         }
     except Exception as e:
-        logger.error(f"Lỗi khi lấy thông tin chứng chỉ cho {server_name}: {str(e)}")
+        logger.error(f"Lỗi khi lấy thông tin chứng chỉ cho {
+                     server_name}: {str(e)}")
         return {
             "cipher_suite": f"Error: {str(e)[:50]}",
             "unstrusted_cert": "Unknown",
             "expire_certificate": "Unknown"
         }
+
 
 def process_packet(pkt: Any) -> Optional[List[Any]]:
 
@@ -369,7 +362,8 @@ def process_packet(pkt: Any) -> Optional[List[Any]]:
             packet_data["host"] = getattr(pkt.http, "host", "N/A")
             packet_data["url"] = getattr(pkt.http, "request_uri", "N/A")
             packet_data["method"] = getattr(pkt.http, "request_method", "N/A")
-            packet_data["content_type"] = getattr(pkt.http, "content_type", "N/A")
+            packet_data["content_type"] = getattr(
+                pkt.http, "content_type", "N/A")
 
             # Kiểm tra HSTS (Strict-Transport-Security)
             packet_data["hsts"] = "No"
@@ -382,16 +376,19 @@ def process_packet(pkt: Any) -> Optional[List[Any]]:
             if packet_data["content_type"] == "application/x-www-form-urlencoded" and hasattr(pkt.http, "file_data"):
                 try:
                     hex_data = pkt.http.file_data.replace(":", "")
-                    packet_data["sensitive_data"] = binascii.unhexlify(hex_data).decode('utf-8', errors='ignore')
+                    packet_data["sensitive_data"] = binascii.unhexlify(
+                        hex_data).decode('utf-8', errors='ignore')
                 except Exception as e:
-                    packet_data["sensitive_data"] = f"Decode Error: {str(e)[:50]}"
+                    packet_data["sensitive_data"] = f"Decode Error: {str(e)[
+                        :50]}"
 
         # Xử lý TLS
         elif "TLS" in pkt:
             packet_data["protocol"] = "TLS"
-            packet_data["server_name"] = getattr(pkt.tls, "handshake_extensions_server_name", "Unknown")
-            packet_data["tls_version"] = getattr(pkt.tls, "handshake_version", "Unknown")
-
+            packet_data["server_name"] = getattr(
+                pkt.tls, "handshake_extensions_server_name", "Unknown")
+            packet_data["tls_version"] = getattr(
+                pkt.tls, "handshake_version", "Unknown")
 
         return [
             packet_data["protocol"],
@@ -414,13 +411,12 @@ def process_packet(pkt: Any) -> Optional[List[Any]]:
         logger.error(f"{str(e)}")
         return None
 
+
 def main():
     try:
         logger.info(f"{PCAP_FILE}")
 
-
         cap = pyshark.FileCapture(PCAP_FILE, display_filter="http or tls")
-
 
         data = []
         for pkt in cap:
@@ -438,11 +434,8 @@ def main():
             "tls_version", "expire_certificate", "hsts"
         ])
 
-
         unique_servers = df[df['protocol'] == 'TLS']['server_name'].unique()
         server_info = {}
-
-
 
         with ThreadPoolExecutor(max_workers=10) as executor:
             future_to_server = {
@@ -457,7 +450,6 @@ def main():
                 except Exception as e:
                     logger.error(f"Lỗi khi xử lý {server}: {str(e)}")
 
-
         for index, row in df[df['protocol'] == 'TLS'].iterrows():
             server = row['server_name']
             if server in server_info:
@@ -466,18 +458,16 @@ def main():
                 df.at[index, 'unstrusted_cert'] = info['unstrusted_cert']
                 df.at[index, 'expire_certificate'] = info['expire_certificate']
 
-
         df.to_csv(CSV_FILE, index=False)
-
 
     except Exception as e:
         logger.error(f"{str(e)}")
 
+
 if __name__ == "__main__":
     main()
-    #1: sercure, 0:insecure
+    # 1: sercure, 0:insecure
     df = pd.read_csv(CSV_FILE)
-
 
     # 1: Secure, 0: Insecure
     # df['weak_cipher_suite'] = np.where(df['cipher_suite'] == 'Unknown', 0, 1)
@@ -500,4 +490,3 @@ if __name__ == "__main__":
 
     print(df['secure'].value_counts())
     df.to_csv(CSV_FILE)
->>>>>>> miku

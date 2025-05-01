@@ -45,6 +45,7 @@ while time.time() < end_time:
         command = f'curl -L "{url}" -H "Referer: {referer}"'
 
     print(f"[+] Running: {command}")
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    result = subprocess.run(command, shell=True,
+                            capture_output=True, text=True)
 
     time.sleep(random.randint(10, 30))

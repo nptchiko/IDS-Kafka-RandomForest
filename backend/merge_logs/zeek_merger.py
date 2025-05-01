@@ -1,255 +1,262 @@
-#!/usr/bin/env python3
-"""
-Continuous Zeek JSON Log Merger - Monitors and merges multiple Zeek JSON log files as they grow.
-Handles common Zeek log files like http.log, conn.log, ssl.log, etc. in JSON format.
-"""
-
-import os
-import sys
-import json
-import gzip
+import pandas as pd
+import numpy as np
 import time
-import argparse
-import hashlib
-from collections import defaultdict
+import os
+import json
 from datetime import datetime
 
+PATH = '/logs/'
+OUTPUT_FILE = '/logs/dataset.json'
+CHECK_INTERVAL = 10  # seconds between checks for file changes
 
-class ContinuousZeekJsonLogMerger:
-    def __init__(self, input_files, output_file, output_format="jsonl", interval=5):
-        self.input_files = input_files
-        self.output_file = output_file
-        self.output_format = output_format
-        self.interval = interval  # Polling interval in seconds
-        self.source_field = "source_log"  # Field to indicate source log file
+# Store last modification times
+last_modified = {
+    'ssl': 0,
+    'conn': 0,
+    'http': 0
+}
 
-        # Tracking variables
-        self.file_sizes = {}      # Track file sizes to detect changes
-        self.processed_entries = set()  # Use hash of entries to avoid duplicates
-        self.logs = []            # Collection of all log entries
 
-    def get_file_size(self, file_path):
-        """Get the size of a file in bytes."""
-        try:
-            return os.path.getsize(file_path)
-        except Exception:
-            return 0
+def format_csv(input_file):
+    """Parse Zeek log files and convert to DataFrame."""
+    try:
+        with open(input_file, "r", encoding="utf-8") as file:
+            lines = file.readlines()
+        separator = "\t"
+        columns = []
+        data_rows = []
+        current_line = ""
+        for line in lines:
+            if line.startswith("#separator"):
+                continue
+            elif line.startswith("#fields"):
+                columns = line.split(separator)[1:]
+                data_rows.append(columns)
+                continue
+            elif line.startswith("#"):
+                continue
+            elif line.endswith("\\"):
+                current_line += line[:-1]
+            else:
+                current_line += line
+                data_rows.append(current_line.split(separator))
+                current_line = ""
 
-    def process_file(self, file_path, from_beginning=False):
-        """
-        Process a single JSON-formatted Zeek log file.
+        df = pd.DataFrame(data_rows, columns=columns)
+        df.columns = df.columns.str.strip()
+        return df
+    except Exception as e:
+        print(f"Error reading {input_file}: {e}")
+        return pd.DataFrame()
 
-        Args:
-            file_path: Path to the log file
-            from_beginning: If True, process the entire file; otherwise, only new content
-        """
-        log_type = os.path.basename(file_path).split('.')[0]
 
-        # Get current and previous file sizes
-        current_size = self.get_file_size(file_path)
-        previous_size = self.file_sizes.get(file_path, 0)
+def merge_logs():
+    """Merge the log files and save to JSON."""
+    print(f"[{datetime.now()}] Processing log files...")
 
-        # If file is new or we're forced to read from beginning
-        if from_beginning or file_path not in self.file_sizes:
-            previous_size = 0
+    df_ssl = format_csv(PATH + 'ssl.log')
+    df_conn = format_csv(PATH + 'conn.log')
+    df_http = format_csv(PATH + 'http.log')
+    df_x509 = format_csv(PATH + 'x509.log')
 
-        # If file hasn't grown, or has shrunk (rotated), no need to process
-        if current_size <= previous_size and not from_beginning:
-            return 0
-
-        # Handle both plain text and gzipped files
-        is_gzip = file_path.endswith('.gz')
-        open_func = gzip.open if is_gzip else open
-        open_mode = 'rt' if is_gzip else 'r'
-
-        try:
-            with open_func(file_path, open_mode) as f:
-                # If we're not starting from the beginning, seek to the previous position
-                if previous_size > 0:
-                    f.seek(previous_size)
-
-                # Process each line as a separate JSON object
-                new_entries = 0
-                for line in f:
-                    line = line.strip()
-                    # Skip empty lines and comments
-                    if not line or line.startswith('#'):
-                        continue
-
-                    try:
-                        record = json.loads(line)
-
-                        # Generate a unique identifier for this record to avoid duplicates
-                        # This should work for most Zeek logs that have uid or similar identifiers
-                        id_fields = ['ts']
-                        id_parts = []
-
-                        for field in id_fields:
-                            if field in record:
-                                id_parts.append(str(record[field]))
-
-                        if not id_parts:
-                            # If no unique fields found, use the whole record
-                            record_id = hashlib.md5(line.encode()).hexdigest()
-                        else:
-                            record_id = hashlib.md5(
-                                '|'.join(id_parts).encode()).hexdigest()
-
-                        # Only add if we haven't seen this record before
-                        if record_id not in self.processed_entries:
-                            # Add source log info
-                            record[self.source_field] = log_type
-                            self.logs.append(record)
-                            self.processed_entries.add(record_id)
-                            new_entries += 1
-
-                    except json.JSONDecodeError as e:
-                        print(f"Error parsing JSON in {file_path}: {e}")
-                        continue
-
-                # Update file size for next read
-                self.file_sizes[file_path] = current_size
-
-                if new_entries > 0:
-                    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    print(f"""[{timestamp}] Added {
-                          new_entries} new entries from {file_path}""")
-
-                return new_entries
-
-        except Exception as e:
-            print(f"Error processing file {file_path}: {e}")
-            return 0
-
-    def sort_logs(self):
-        """Sort all log entries by timestamp."""
-        timestamp_fields = ["ts", "timestamp"]
-
-        if self.logs:
-            # Check which timestamp field exists
-            sample_records = self.logs[:min(10, len(self.logs))]
-            for field in timestamp_fields:
-                if any(field in record for record in sample_records):
-                    self.logs.sort(key=lambda x: float(x.get(field, 0)))
-                    return True
-
+    # Skip if essential dataframes are empty
+    if df_ssl.empty or df_conn.empty or df_http.empty:
+        print(
+            "One or more essential log files are empty or couldn't be read. Skipping merge.")
         return False
 
-    def write_merged_log(self):
-        """Write the merged log to the output file."""
-        try:
-            with open(self.output_file, 'w') as out:
-                if self.output_format == "jsonl":
-                    # Write as JSON Lines (one JSON object per line)
-                    for record in self.logs:
-                        out.write(json.dumps(record) + "\n")
-                elif self.output_format == "json_array":
-                    # Write as a single JSON array
-                    json.dump(self.logs, out)
+    # Note if x509 is empty but continue processing
+    if df_x509.empty:
+        print(
+            "Warning: x509.log is empty or couldn't be read. Continuing without x509 data.")
 
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            print(f"""[{timestamp}] Updated merged log: {
-                  self.output_file} ({len(self.logs)} total entries)""")
-            return True
+    # Merge DataFrames
+    merged_df = pd.merge(df_conn, df_ssl, on=["ts"], how="outer")
+    merged_df = pd.merge(merged_df, df_http, on=["ts"], how="outer")
 
-        except Exception as e:
-            print(f"Error writing to output file: {e}")
-            return False
+    # Only merge x509 if it has data
+    if not df_x509.empty:
+        merged_df = pd.merge(merged_df, df_x509, on=["ts"], how="outer")
 
-    def scan_for_changes(self):
-        """Scan input files for changes and process any new data."""
-        changes_detected = False
+    # Clean data
+    merged_df = merged_df.map(lambda x: x.strip() if isinstance(x, str) else x)
 
-        for file_path in self.input_files:
-            if not os.path.exists(file_path):
-                continue
+    # Handle merged info
+    merged_df = merged_df[1:-1]  # Skip header/footer rows
 
-            current_size = self.get_file_size(file_path)
-            if current_size > self.file_sizes.get(file_path, 0):
-                # File has grown, process it
-                if self.process_file(file_path) > 0:
-                    changes_detected = True
-            elif current_size < self.file_sizes.get(file_path, 0):
-                # File has shrunk (potentially rotated), process from beginning
-                print(f"""File size decreased for {
-                      file_path}, reprocessing from beginning...""")
-                if self.process_file(file_path, from_beginning=True) > 0:
-                    changes_detected = True
+    # Handle duplicate columns from merges more thoroughly
+    # First drop _y columns from the merge
+    columns_to_drop = [col for col in merged_df.columns if col.endswith('_y')]
+    merged_df = merged_df.drop(columns=columns_to_drop)
 
-        return changes_detected
+    # Rename _x columns
+    merged_df = merged_df.rename(columns=lambda x: x.rstrip('_x'))
 
-    def run(self):
-        """Main monitoring loop."""
-        print(f"""Starting continuous monitoring of {
-              len(self.input_files)} Zeek log files...""")
-        print(f"Merged output will be written to: {self.output_file}")
-        print(f"Monitoring interval: {self.interval} seconds")
-        print("Press Ctrl+C to stop monitoring")
+    # Check for any remaining duplicate columns and make them unique
+    if merged_df.columns.duplicated().any():
+        print(f"Warning: Found duplicate column names. Making them unique...")
+        # Get duplicate columns
+        duplicates = merged_df.columns[merged_df.columns.duplicated()].tolist()
+        print(f"Duplicate columns: {duplicates}")
 
-        try:
-            # Initial processing of all files
-            for file_path in self.input_files:
-                if os.path.exists(file_path):
-                    print(f"Initial processing of {file_path}...")
-                    self.process_file(file_path, from_beginning=True)
+        # Create a mapping to make columns unique
+        column_mapping = {}
+        seen_columns = set()
+
+        for i, col in enumerate(merged_df.columns):
+            if col in seen_columns:
+                new_col = f"{col}_{i}"
+                column_mapping[col] = new_col
+                print(f"Renaming duplicate column '{col}' to '{new_col}'")
+            else:
+                seen_columns.add(col)
+
+        # Apply the mapping to rename duplicates
+        merged_df = merged_df.rename(columns=column_mapping)
+
+    # Filter columns based on the specified list
+    filter_columns = [
+        'ts', 'missed_bytes', 'version', 'cipher', 'curve', 'resumed',
+        'last_alert', 'established', 'sni_matches_cert', 'username', 'password',
+        'certificate.not_valid_before', 'certificate.not_valid_after',
+        'certificate.sig_alg', 'certificate.key_length', 'certificate.key'
+    ]
+
+    # Print info about filtered columns and available columns
+    print(f"""Available columns in merged data: {
+          sorted(merged_df.columns.tolist())}""")
+
+    # Keep only columns that exist in the DataFrame
+    existing_columns = [
+        col for col in filter_columns if col in merged_df.columns]
+
+    # Print info about filtered columns
+    print(f"""Filtering to keep {len(existing_columns)} columns out of {
+          len(merged_df.columns)} total columns""")
+    print(f"Columns being kept: {existing_columns}")
+    missing_columns = [
+        col for col in filter_columns if col not in merged_df.columns]
+    if missing_columns:
+        print(f"""Note: The following requested columns were not found in the data: {
+              missing_columns}""")
+
+    # Apply the filter
+    filtered_df = merged_df[existing_columns]
+
+    # Ensure all requested columns exist in the output, adding empty ones if needed
+    for col in filter_columns:
+        if col not in filtered_df.columns:
+            print(f"Adding empty column: {col}")
+            filtered_df[col] = ""
+
+    # Convert to JSON Lines format (one JSON object per line)
+    try:
+        # Print column names to help debug
+        print(f"Columns in final DataFrame: {filtered_df.columns.tolist()}")
+        # Handle duplicate columns if present (shouldn't happen after filtering, but just in case)
+        if filtered_df.columns.duplicated().any():
+            print("WARNING: Handling duplicate columns...")
+            # Get original column names before making them unique
+            original_columns = filtered_df.columns.tolist()
+
+            # Create unique column names temporarily
+            unique_columns = []
+            seen = set()
+            for col in original_columns:
+                if col in seen:
+                    count = 1
+                    while f"{col}_{count}" in seen:
+                        count += 1
+                    unique_columns.append(f"{col}_{count}")
+                    seen.add(f"{col}_{count}")
                 else:
-                    print(f"Warning: File not found - {file_path}")
+                    unique_columns.append(col)
+                    seen.add(col)
 
-            # Initial sort and write
-            if self.logs:
-                self.sort_logs()
-                self.write_merged_log()
+            # Assign unique column names
+            filtered_df.columns = unique_columns
 
-            # Continuous monitoring loop
-            while True:
-                time.sleep(self.interval)
+        # Replace NaN values with empty strings (instead of null)
+        filtered_df = filtered_df.replace({np.nan: ""})
 
-                if self.scan_for_changes():
-                    # If changes were detected and processed
-                    self.sort_logs()
-                    self.write_merged_log()
+        # Convert to records with proper column names
+        records = filtered_df.to_dict('records')
 
-        except KeyboardInterrupt:
-            print("\nMonitoring stopped by user")
+        # Write each record as a separate JSON object on its own line (JSONL format)
+        with open(OUTPUT_FILE, 'w') as f:
+            for record in records:
+                f.write(json.dumps(record) + '\n')
 
-        finally:
-            # Write final output
-            if self.logs:
-                print("Writing final merged log...")
-                self.sort_logs()
-                self.write_merged_log()
+        print(f"""[{datetime.now()}] Successfully saved filtered data to {
+              OUTPUT_FILE} in JSON Lines format""")
+        print(f"Number of records: {len(records)}")
+        return True
 
-            # Show summary
-            log_counts = defaultdict(int)
-            for record in self.logs:
-                log_counts[record.get(self.source_field, "unknown")] += 1
+        print(f"[{datetime.now()}] Successfully saved merged data to {OUTPUT_FILE}")
 
-            print("\nFinal summary of merged logs:")
-            for log_type, count in sorted(log_counts.items()):
-                print(f"  {log_type}: {count} entries")
+        return True
+    except Exception as e:
+        print(f"Error saving JSON file: {e}")
+        return False
+
+
+def files_modified():
+    """Check if any input files have been modified."""
+    file_paths = {
+        'ssl': PATH + 'ssl.log',
+        'conn': PATH + 'conn.log',
+        'http': PATH + 'http.log',
+        'x509': PATH + 'x509.log'
+    }
+
+    modified = False
+
+    for key, filepath in file_paths.items():
+        try:
+            current_mtime = os.path.getmtime(filepath)
+            if current_mtime > last_modified[key]:
+                last_modified[key] = current_mtime
+                modified = True
+                print(f"[{datetime.now()}] Detected changes in {filepath}")
+        except FileNotFoundError:
+            print(f"Warning: {filepath} not found")
+
+    return modified
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Continuously merge multiple JSON-formatted Zeek log files as they grow.")
-    parser.add_argument("input_files", nargs="+",
-                        help="Input JSON Zeek log files (http.log, conn.log, etc.)")
-    parser.add_argument("-o", "--output", default="merged.log",
-                        help="Output file name (default: merged.log)")
-    parser.add_argument("-f", "--format", choices=["jsonl", "json_array"], default="jsonl",
-                        help="Output format: jsonl (JSON Lines, default) or json_array (single JSON array)")
-    parser.add_argument("-i", "--interval", type=int, default=5,
-                        help="Monitoring interval in seconds (default: 5)")
+    """Main function to continuously monitor and process log files."""
+    print(f"[{datetime.now()}] Starting continuous log merger...")
+    print(f"Monitoring directory: {PATH}")
+    print(f"Output file: {OUTPUT_FILE}")
+    print(f"Check interval: {CHECK_INTERVAL} seconds")
 
-    args = parser.parse_args()
+    # Initialize last modified times
+    global last_modified
+    last_modified = {
+        'ssl': 0,
+        'conn': 0,
+        'http': 0,
+        'x509': 0
+    }
 
-    merger = ContinuousZeekJsonLogMerger(
-        args.input_files,
-        args.output,
-        args.format,
-        args.interval
-    )
-    merger.run()
+    for key in last_modified:
+        file_path = PATH + f'{key}.log'
+        try:
+            last_modified[key] = os.path.getmtime(file_path)
+        except FileNotFoundError:
+            print(f"Warning: {file_path} not found during initialization")
+
+    # Initial merge
+    merge_logs()
+
+    try:
+        while True:
+            time.sleep(CHECK_INTERVAL)
+            if files_modified():
+                merge_logs()
+    except KeyboardInterrupt:
+        print(f"\n[{datetime.now()}] Program terminated by user")
 
 
 if __name__ == "__main__":

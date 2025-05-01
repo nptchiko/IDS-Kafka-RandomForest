@@ -3,15 +3,15 @@ import numpy as np
 from datetime import datetime
 
 
-df = pd.read_json('../../data/logs/merged.log', lines=True)
+df = pd.read_json('dataset.json', lines=True)
 
-feature = ['proto', 'service', 'id.resp_p', 'missed_bytes', 'version', 'cipher', 'curve',
-           'resumed', 'established', 'sni_matches_cert']
+print(df.head())
+feature = ['missed_bytes', 	'version', 	'cipher', 	'curve', 'resumed', 'last_alert', 'established', 'sni_matches_cert', 'username', 'password',
+           'certificate.not_valid_before', 'certificate.not_valid_after', 'certificate.sig_alg', 'certificate.key_length', 'certificate.key']
 
 df = df[feature]
 df.replace(["", "-", "NULL"], pd.NA, inplace=True)
-df['id.resp_p'] = pd.to_numeric(
-    df['id.resp_p'], errors='coerce').astype('Int64')
+
 df['missed_bytes'] = pd.to_numeric(
     df['missed_bytes'], errors='coerce').astype('Int64')
 
@@ -41,6 +41,21 @@ df['cipher'] = np.where(
     1
 )
 
+df['certificate.sig_alg'] = np.where(
+    df['certificate.sig_alg'].notna() & ~df['certificate.sig_alg'].isin([
+        'sha256WithRSAEncryption',
+        'sha384WithRSAEncryption',
+        'sha512WithRSAEncryption',
+        'ecdsa-with-SHA256',
+        'ecdsa-with-SHA384',
+        'ecdsa-with-SHA512',
+        'rsassaPss',  # Generally secure but ideally we'd check parameters
+        'ed25519',
+        'ed448'
+    ]),
+    0,
+    1
+)
 
 df['curve'] = np.where(
     df['curve'].notna() & df['curve'].isin(
@@ -68,10 +83,10 @@ df['sni_matches_cert'] = np.where(
 )
 
 df['secure_label'] = np.where(
-    ((df['service'] == 'dns') & (df['id.resp_p'] == 53)) |
-    ((df['service'] == 'dhcp') & ((df['id.resp_p'] == 67) | (df['id.resp_p'] == 68))) |
-    ((df['service'] == 'ntp') & (df['id.resp_p'] == 123)) |
-    (df['proto'] == 'unknown_transport') |
+    # ((df['service'] == 'dns') & (df['id.resp_p'] == 53)) |
+    # ((df['service'] == 'dhcp') & ((df['id.resp_p'] == 67) | (df['id.resp_p'] == 68))) |
+    # ((df['service'] == 'ntp') & (df['id.resp_p'] == 123)) |
+    # (df['proto'] == 'unknown_transport') |
     (df['missed_bytes'].notna() & (df['missed_bytes'] > 0)) |
     # (df['username'] == 0) |
     # (df['password'] == 0) |

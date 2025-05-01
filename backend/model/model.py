@@ -1,12 +1,3 @@
-#!/usr/bin/env python3
-"""
-Kafka-based ML Processor for Network Security
-- Consumes Zeek logs from 'zeek-logs' Kafka topic
-- Preprocesses data similar to continuous-ml-preprocessor.py
-- Applies Random Forest model for prediction
-- Produces alerts to 'alert' Kafka topic when malicious traffic is detected
-"""
-
 import json
 import pickle
 import pandas as pd
@@ -14,6 +5,7 @@ import numpy as np
 import argparse
 from datetime import datetime
 from kafka import KafkaConsumer, KafkaProducer
+from io import StringIO
 
 
 class KafkaMLProcessor:
@@ -28,8 +20,8 @@ class KafkaMLProcessor:
 
         # Define features used in the model
         self.features = [
-            'proto', 'service', 'id.resp_p', 'missed_bytes', 'version', 'cipher', 'curve',
-            'resumed', 'established', 'sni_matches_cert'
+            'missed_bytes', 'version', 'cipher', 'curve', 'resumed', 'last_alert', 'established', 'sni_matches_cert', 'username', 'password',
+            'certificate.not_valid_before', 'certificate.not_valid_after', 'certificate.sig_alg', 'certificate.key_length', 'certificate.key'
         ]
 
         # Initialize Kafka consumer and producer
@@ -73,15 +65,13 @@ class KafkaMLProcessor:
         try:
             # Convert single log entry to DataFrame
 
-            df = pd.read_json(path_or_buf=log_entry, lines=True)
-            print("hello")
+            df = pd.read_json(path_or_buf=StringIO(log_entry), lines=True)
+
             # Filter for features used in the model
             df = df[self.features].copy()
 
-            # Clean and transform data
             df.replace(["", "-", "NULL"], pd.NA, inplace=True)
-            df['id.resp_p'] = pd.to_numeric(
-                df['id.resp_p'], errors='coerce').astype('Int64')
+
             df['missed_bytes'] = pd.to_numeric(
                 df['missed_bytes'], errors='coerce').astype('Int64')
 
@@ -112,6 +102,22 @@ class KafkaMLProcessor:
                 1
             )
 
+            df['certificate.sig_alg'] = np.where(
+                df['certificate.sig_alg'].notna() & ~df['certificate.sig_alg'].isin([
+                    'sha256WithRSAEncryption',
+                    'sha384WithRSAEncryption',
+                    'sha512WithRSAEncryption',
+                    'ecdsa-with-SHA256',
+                    'ecdsa-with-SHA384',
+                    'ecdsa-with-SHA512',
+                    'rsassaPss',  # Generally secure but ideally we'd check parameters
+                    'ed25519',
+                    'ed448'
+                ]),
+                0,
+                1
+            )
+
             df['curve'] = np.where(
                 df['curve'].notna() & df['curve'].isin(
                     ['secp256r1', 'secp384r1', 'secp521r1', 'x25519']),
@@ -137,25 +143,6 @@ class KafkaMLProcessor:
                 1
             )
 
-            df['secure_label'] = np.where(
-                ((df['service'] == 'dns') & (df['id.resp_p'] == 53)) |
-                ((df['service'] == 'dhcp') & ((df['id.resp_p'] == 67) | (df['id.resp_p'] == 68))) |
-                ((df['service'] == 'ntp') & (df['id.resp_p'] == 123)) |
-                (df['proto'] == 'unknown_transport') |
-                (df['missed_bytes'].notna() & (df['missed_bytes'] > 0)) |
-                # (df['username'] == 0) |
-                # (df['password'] == 0) |
-                (df['version'] == 0) |
-                (df['cipher'] == 0) |
-                (df['curve'] == 0) |
-                (df['resumed'] == 0) |
-                (df['established'] == 0) |
-                (df['sni_matches_cert'] == 0),
-
-                0,  # Value if condition is True (insecure)
-                1   # Value if condition is False (secure)
-            )
-
             return df
 
         except Exception as e:
@@ -167,15 +154,21 @@ class KafkaMLProcessor:
         """Make prediction using the Random Forest model."""
         try:
             # Make prediction
+            df.to_csv('clean_dataset.csv')
+            df = pd.read_csv('./clean_dataset.csv')
+            df = df.drop([
+                'Unnamed: 0'
+            ], axis=1)
+
             prediction = self.model.predict(df)[0]
 
             # Get prediction probability
-            probability = self.model.predict_proba(df)[0]
 
             return {
-                'prediction': int(prediction),  # 0 = insecure, 1 = secure
+                'prediction': int(prediction)
+                # 0 = insecure, 1 = secure
                 # Confidence of prediction
-                'confidence': float(probability[int(prediction)])
+
             }
 
         except Exception as e:
@@ -186,17 +179,8 @@ class KafkaMLProcessor:
         """Create alert message based on log entry and prediction."""
         alert = {
             'timestamp': datetime.now().isoformat(),
-            'source_ip': log_entry.get('id.orig_h', 'unknown'),
-            'source_port': log_entry.get('id.orig_p', 'unknown'),
-            'dest_ip': log_entry.get('id.resp_h', 'unknown'),
-            'dest_port': log_entry.get('id.resp_p', 'unknown'),
-            'protocol': log_entry.get('proto', 'unknown'),
-            'service': log_entry.get('service', 'unknown'),
-            'prediction': prediction_result['prediction'],
-            'confidence': prediction_result['confidence'],
             'alert_type': 'secure' if prediction_result['prediction'] == 1 else 'malicious',
             'severity': 'low' if prediction_result['prediction'] == 1 else 'high',
-            'original_log': log_entry
         }
 
         return alert
@@ -208,37 +192,37 @@ class KafkaMLProcessor:
         try:
             # Process messages
             for message in self.consumer:
-                # try:
-                #     log_entry = message.value
-                #
-                #     # Check if log entry has required fields
-                #     if not all(feature in log_entry for feature in self.features):
-                #         print(f"Skipping log entry - missing required fields")
-                #         continue
-                #
-                #     # Preprocess log entry
-                #     df = self.preprocess_log(log_entry)
-                #     if df is None or df.empty:
-                #         continue
-                #
-                #     # Make prediction
-                #     prediction_result = self.predict(df)
-                #     if prediction_result is None:
-                #         continue
-                #
-                #     # Create alert
-                #     alert = self.create_alert(log_entry, prediction_result)
-                #
-                #     # Only send alert if traffic is malicious (prediction = 0)
-                #     if prediction_result['prediction'] == 0:
-                #         self.producer.send(self.output_topic, alert)
-                #         print(f"Alert sent: Malicious traffic detected from {alert['source_ip']}:{
-                #               alert['source_port']} to {alert['dest_ip']}:{alert['dest_port']}")
-                # except Exception as e:
-                #     print(f"Error processing message: {e}")
-                #     continue
-                #
-                self.producer.send(self.output_topic, {'sample': 'test'})
+                try:
+                    log_entry = message.value
+
+                    # Check if log entry has required fields
+                    if not all(feature in log_entry for feature in self.features):
+                        print(f"Skipping log entry - missing required fields")
+                        continue
+
+                    # Preprocess log entry
+                    df = self.preprocess_log(log_entry)
+                    if df is None or df.empty:
+                        print(log_entry)
+                        print("Cant process logentry")
+                        continue
+
+                    # Make prediction
+                    prediction_result = self.predict(df)
+                    if prediction_result is None:
+                        print("prediction failed!")
+                        continue
+
+                    # Create alert
+                    alert = self.create_alert(log_entry, prediction_result)
+
+                    # Only send alert if traffic is malicious (prediction = 0)
+                    self.producer.send(self.output_topic, alert)
+                    print("Message produced with result ", alert['alert_type'])
+
+                except Exception as e:
+                    print(f"Error processing message: {e}")
+                    continue
         except KeyboardInterrupt:
             print("\nProcessing stopped by user")
 

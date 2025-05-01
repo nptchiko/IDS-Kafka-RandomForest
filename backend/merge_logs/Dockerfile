@@ -4,10 +4,11 @@ WORKDIR /app
 
 COPY zeek_merger.py /app/
 
-RUN chmod +x /app/zeek_merger.py
+RUN chmod +x /app/zeek_merger.py 
 
-RUN mkdir -p /logs
+RUN mkdir -p /logs 
 
-ENTRYPOINT ["python3", "/app/zeek_merger.py"]
+RUN pip3 install --no-cache-dir pandas 
 
-CMD ["--help"]
+ENTRYPOINT ["python3", "/app/zeek_merger.py"] 
+
