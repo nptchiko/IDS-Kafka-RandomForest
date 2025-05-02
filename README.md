@@ -2,6 +2,12 @@
 
 A full-stack system for real-time **network traffic classification** using data extracted from Zeek logs. It processes data through **Kafka**, stores it in **MongoDB**, uses **Decision Tree** classification, and displays results in a React dashboard.
 
+
+## Thứ tự để chạy docker:
+
+    zeek -> merge_logs -> db -> kafka -> kafka-connect script
+
+
 ## 📦 System Pipeline Overview
 
 ```
