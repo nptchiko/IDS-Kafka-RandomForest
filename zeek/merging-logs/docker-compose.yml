@@ -1,0 +1,9 @@
+services:
+  zeek-log-merger:
+    network_mode: host
+    dns: 
+        - 8.8.8.8
+    volumes:
+      - ../../data/logs:/logs 
+    restart: unless-stopped
+    build: . 
