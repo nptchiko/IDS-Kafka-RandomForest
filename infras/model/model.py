@@ -179,8 +179,7 @@ class KafkaMLProcessor:
         """Create alert message based on log entry and prediction."""
         alert = {
             'timestamp': datetime.now().isoformat(),
-            'alert_type': 'secure' if prediction_result['prediction'] == 1 else 'malicious',
-            'severity': 'low' if prediction_result['prediction'] == 1 else 'high',
+            'current_status': 'safe' if prediction_result['prediction'] == 1 else 'unsafe',
         }
 
         return alert
@@ -218,7 +217,8 @@ class KafkaMLProcessor:
 
                     # Only send alert if traffic is malicious (prediction = 0)
                     self.producer.send(self.output_topic, alert)
-                    print("Message produced with result ", alert['alert_type'])
+                    print(f"""Message produced at {alert['timestamp']} with  result {
+                          alert['current_status']}""")
 
                 except Exception as e:
                     print(f"Error processing message: {e}")
