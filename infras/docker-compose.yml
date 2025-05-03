@@ -25,9 +25,40 @@ services:
       - websocket-server
     networks:
       - app-network
+    environment:
+      - FLASK_ENV=production
+  model:
+    build: 
+      context: ./model
+      dockerfile: Dockerfile
+    environment:        
+      - BOOTSTRAP_SERVERS=kafka:9092
+      - INPUT_TOPIC=zeek-logs
+      - OUTPUT_TOPIC=alert
+      - MODEL_PATH=model/RandomForestModel.sav
+    networks:
+      - app-network
+  mongoserver:
+    image: mongo:latest
+    hostname: mongoserver
+    container_name: mongoserver
+    ports:
+      - 27017:27017
+    environment:
+      - MONGO_INITDB_DATABASE=admin
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+    volumes:
+      - ./db/mongo-entrypoint:/docker-entrypoint-initdb.d
+      - mongodb:/data/db
+      - mongoconfig:/data/configdb
+    networks:
+      - app-network
+
+volumes:
+  mongodb:
+  mongoconfig:
 
 networks:
   app-network:
     driver: bridge
-
-

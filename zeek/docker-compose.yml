@@ -6,8 +6,18 @@ services:
             - ../data/logs/:/zeek/logs
         cap_add:
             - NET_RAW
-        container_name: zeek_container
+        container_name: zeek-capturing
         network_mode: host
-
+        environment: 
+            INTERFACE: any
         command: "bash -c 'mkdir -p /zeek/logs && cd /zeek/logs && zeek -i any local /usr/share/zeek/site/extract_logs.zeek'"
         
+     zeek-log-merger:
+        container_name: zeek-log-merger
+        depends_on:
+            - zeek      
+        volumes:
+          - ../data/logs:/logs 
+        build:
+            context: merging-logs/
+

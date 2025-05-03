@@ -6,7 +6,7 @@
      "topics":"alert",
      "connection.uri":"mongodb://admin:admin@mongodb:27017",
      "database":"test",
-     "collection":"alert",
+     "collection":"status_info",
      "value.converter": "org.apache.kafka.connect.json.JsonConverter",
      "value.converter.schemas.enable": "false" 
     }
