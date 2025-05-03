@@ -1,7 +1,10 @@
-# 🛰️ Network Traffic Classifier — Zeek + Kafka + ML + React + MongoDB
+# 🛰️ Real time Intrusive Detecting System With Apache Kafka
+![image](https://github.com/user-attachments/assets/e1308846-08a0-415d-9769-8c272479dcb9)
 
-A full-stack system for real-time **network traffic classification** using data extracted from Zeek logs. It processes data through **Kafka**, stores it in **MongoDB**, uses **Decision Tree** classification, and displays results in a React dashboard.
+## About
+- Full-stack IDS implementing Machine Learning (Random Forest) using logs extracted from **Zeek** tool,  utilizes **Kafka** for logs streaming, uses **Decision Tree** classification to detect malicious traffic, stores predicted result in **MongoDB**, and displays results in a **React** dashboard.
 
+- We use **Docker** as main tool to deploy and containerize our systems modules.
 
 ## 📦 System Pipeline Overview
 ![ff4c0de82dd69f88c6c7](https://github.com/user-attachments/assets/4e8b5bd9-78c8-49d0-a114-043ddea3b695)
@@ -16,17 +19,17 @@ A full-stack system for real-time **network traffic classification** using data 
 | localhost:5137 | UI |
 ## 🗂️ Project Modules
 
-- **Frontend (React + TypeScript + Vite)**  
+- **Network capturing (Zeek)**  
+  We use zeek to capture traffic in host interface, generate log files, merge it into dataset.json with needed logs and wait for Kafka Connector to transfer.
+
+- **UI Frontend (React + TypeScript + Vite)**  
   Interactive UI with live updates via WebSocket.
-  
-- **Backend (Flask + Socket.IO)**  
-  WebSocket server delivering classified traffic data to frontend.
 
-- **Data Pipeline (Kafka + MongoDB in Docker)**  
-  Zeek log ingested via Kafka → stored in MongoDB.
+- **Data Streaming (Kafka)**  
+  -> Detail in here: [KAFKA README.md](./kafka/README.md)
 
-- **ML Module (Decision Tree)**  
-  Classifies network traffic (e.g., Normal vs Malicious) from Kafka stream data.
+- **ML Classification (Decision Tree)**  
+  Classifies network traffic (e.g., Normal vs Malicious) consumed data from Kafka.
 
 ---
 
