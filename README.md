@@ -1,25 +1,19 @@
-# 🛰️ Network Traffic Classifier — Zeek + Kafka + ML + React
+# 🛰️ Network Traffic Classifier — Zeek + Kafka + ML + React + MongoDB
 
 A full-stack system for real-time **network traffic classification** using data extracted from Zeek logs. It processes data through **Kafka**, stores it in **MongoDB**, uses **Decision Tree** classification, and displays results in a React dashboard.
 
 
-## Thứ tự để chạy docker:
-
-    zeek -> merge_logs -> db -> kafka -> kafka-connect script
-
-
 ## 📦 System Pipeline Overview
+![ff4c0de82dd69f88c6c7](https://github.com/user-attachments/assets/4e8b5bd9-78c8-49d0-a114-043ddea3b695)
 
-```
-
-graph TD
-    Zeek -->|Logs| Kafka --> PythonConsumer --> MongoDB
-    PythonConsumer --> DecisionTree --> WebSocketServer
-    WebSocketServer --> ReactFrontend
-```
-
----
-
+| Ip address  | App |
+| ------------- | ------------- |
+| localhost:8083 | Kafka Connect |
+| localhost:8088 | Kafka UI |
+| localhost:29092 | Kafka Bootstrap Server|
+| localhost:27017 | MongoDB |
+| localhost:5000 | Socket Server |
+| localhost:5137 | UI |
 ## 🗂️ Project Modules
 
 - **Frontend (React + TypeScript + Vite)**  

@@ -48,4 +48,4 @@ while time.time() < end_time:
     result = subprocess.run(command, shell=True,
                             capture_output=True, text=True)
 
-    time.sleep(random.randint(10, 30))
+    time.sleep(random.randint(5, 10))
