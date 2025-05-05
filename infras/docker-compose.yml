@@ -13,16 +13,14 @@ services:
   
   vite-app:
     build: 
-      context: ./web-ui
+      context: ./infras/web-ui
       dockerfile: Dockerfile
     ports:
       - "5173:5173"
     volumes:
-      - ./web-ui:/app
+      - ./infras/web-ui:/app
       - /app/node_modules
     command: npm run dev
-    depends_on:
-      - websocket-server
     networks:
       - app-network
     environment:

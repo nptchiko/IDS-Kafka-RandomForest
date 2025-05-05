@@ -8,18 +8,20 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY model.py .
 
-COPY RandomForestModel.sav .
+RUN mkdir -p model
+
+COPY RandomForestModel.sav model/
+
+COPY entrypoint.sh .
+
+RUN chmod +x entrypoint.sh
 
 #ENV BOOTSTRAP_SERVERS=kafka:9092
 #ENV INPUT_TOPIC=zeek-logs
 #ENV OUTPUT_TOPIC=alert
 #ENV MODEL_PATH=/app/RandomForestModel.sav
 
-CMD ["sh", "-c", "python3 /app/model.py \
-            -b $BOOTSTRAP_SERVERS \
-            -i $INPUT_TOPIC \
-            -o $OUTPUT_TOPIC \
-            --model ${MODEL_PATH}"]
+CMD ["./entrypoint.sh"]
 
 
 
