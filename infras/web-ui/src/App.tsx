@@ -24,8 +24,8 @@ function App() {
   const [tlsPieData, setTlsPieData] = useState<Array<{ id: string, name: string; value: number }>>([]);
 
   useEffect(() => {
-    Socket.on('initial_data', (payload) => {
-      console.log('Received initial data:', payload);
+    Socket.on('status_data', (payload) => {
+      console.log('Received status data:', payload);
 
       if (payload && payload.data) {
         setLogsData(payload.data.logsData || []);
@@ -36,7 +36,7 @@ function App() {
     });
 
     return () => {
-      Socket.off('initial_data');
+      Socket.off('status_data');
     };
   }, []);
 

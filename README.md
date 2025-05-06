@@ -1,22 +1,27 @@
 # 🛰️ Real time Intrusive Detecting System With Apache Kafka
-![image](https://github.com/user-attachments/assets/e1308846-08a0-415d-9769-8c272479dcb9)
+![image](https://github.com/user-attachments/assets/e1308846-08a0-415d-9769-8c272479dcb9) 
 
 ## About
 - Full-stack IDS implementing Machine Learning (Random Forest) using logs extracted from **Zeek** tool,  utilizes **Kafka** for logs streaming, uses **Decision Tree** classification to detect malicious traffic, stores predicted result in **MongoDB**, and displays results in a **React** dashboard.
 
 - We use **Docker** as main tool to deploy and containerize our systems modules.
 
-## 📦 System Pipeline Overview
-![ff4c0de82dd69f88c6c7](https://github.com/user-attachments/assets/4e8b5bd9-78c8-49d0-a114-043ddea3b695)
+## Thứ tự để chạy docker:
 
-| Ip address  | App |
-| ------------- | ------------- |
-| localhost:8083 | Kafka Connect |
-| localhost:8088 | Kafka UI |
-| localhost:29092 | Kafka Bootstrap Server|
-| localhost:27017 | MongoDB |
-| localhost:5000 | Socket Server |
-| localhost:5137 | UI |
+    zeek -> merge_logs -> db -> kafka -> kafka-connect script
+
+
+## 📦 System Pipeline Overview
+
+```
+graph TD
+    Zeek -->|Logs| Kafka --> PythonConsumer --> MongoDB
+    PythonConsumer --> DecisionTree --> WebSocketServer
+    WebSocketServer --> ReactFrontend
+```
+
+---
+
 ## 🗂️ Project Modules
 
 - **Network capturing (Zeek)**  

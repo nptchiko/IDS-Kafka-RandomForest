@@ -14,7 +14,7 @@ logging.getLogger('engineio').setLevel(logging.DEBUG)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 
-MONGO_URL = 'mongodb://admin:admin@localhost:27017/test?authSource=admin'
+MONGO_URL = 'mongodb://admin:admin@mongodb:27017/test?authSource=admin'
 MONGO_DB = 'test'
 COLLECTIONS = ["tls_pie_data", "status_info", "missed_bytes_data", "logs_data"]
 
@@ -90,18 +90,19 @@ def emit_data():
     print("\nStatus data: ", status_data)
 
     # Compare with previous data
-    if SocketService.is_data_changed(status_data):
-        if any([new_logs, new_tls_pie, new_missed_bytes, new_status_info]):
-            status_data = {
-                'tlsPieData': new_tls_pie,
-                'statusInfo': new_status_info,
-                'missedBytesData': new_missed_bytes,
-                'logsData': new_logs
-            }
-        socketio.emit('status_data', {'data': status_data})
-        print("Data was changed, emit new data")
-    else:
-        print("No data change.")
+    # if SocketService.is_data_changed(status_data):
+    #     if any([new_logs, new_tls_pie, new_missed_bytes, new_status_info]):
+    #         status_data = {
+    #             'tlsPieData': new_tls_pie,
+    #             'statusInfo': new_status_info,
+    #             'missedBytesData': new_missed_bytes,
+    #             'logsData': new_logs
+    #         }
+    #     socketio.emit('status_data', {'data': status_data})
+    #     print("Data was changed, emit new data")
+    # else:
+    #     print("No data change.")
+    socketio.emit('status_data', {'data': status_data})
 
 
 def poll_mongo_changes():
@@ -139,4 +140,4 @@ def handle_refresh():
 if __name__ == '__main__':
     print("Server starting")
     socketio.run(app, host='0.0.0.0', port=5000,
-                 debug=True, use_reloader=False)
+                 debug=True, use_reloader=False, allow_unsafe_werkzeug=True)

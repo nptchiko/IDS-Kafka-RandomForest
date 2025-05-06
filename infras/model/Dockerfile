@@ -15,11 +15,12 @@ COPY RandomForestModel.sav .
 #ENV OUTPUT_TOPIC=alert
 #ENV MODEL_PATH=/app/RandomForestModel.sav
 
-CMD ["sh", "-c", "python3 /app/model.py \
-            -b $BOOTSTRAP_SERVERS \
-            -i $INPUT_TOPIC \
-            -o $OUTPUT_TOPIC \
-            --model ${MODEL_PATH}"]
+COPY entrypoint.sh .
 
+RUN chmod +x entrypoint.sh
 
-
+# CMD ["sh", "-c", "python3 /app/model.py \
+#             -b $BOOTSTRAP_SERVERS \
+#             -i $INPUT_TOPIC \
+#             -o $OUTPUT_TOPIC \
+#             --model ${MODEL_PATH}"]
