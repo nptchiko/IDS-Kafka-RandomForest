@@ -24,7 +24,7 @@ class KafkaMLProcessor:
             'certificate.not_valid_before', 'certificate.not_valid_after', 'certificate.sig_alg', 'certificate.key_length', 'certificate.key'
         ]
 
-        # Initialize Kafka consumer and producer
+        print("kafka bootstrap server: " + self.bootstrap_servers)
         self.init_kafka()
 
     def load_model(self):
@@ -37,7 +37,7 @@ class KafkaMLProcessor:
             raise
 
     def init_kafka(self):
-        """Initialize Kafka consumer and producer."""
+
         try:
             self.consumer = KafkaConsumer(
                 self.input_topic,

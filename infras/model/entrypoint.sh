@@ -6,7 +6,7 @@ echo "OUTPUT_TOPIC=$OUTPUT_TOPIC"
 echo "MODEL_PATH=$MODEL_PATH"
 
 python3 model.py \
-  -b "$BOOTSTRAP_SERVERS" \
-  -i "$INPUT_TOPIC" \
-  -o "$OUTPUT_TOPIC" \
-  --model "$MODEL_PATH"
+    -b "$BOOTSTRAP_SERVERS" \
+    -i "$INPUT_TOPIC" \
+    -o "$OUTPUT_TOPIC" \
+    --model "$MODEL_PATH"

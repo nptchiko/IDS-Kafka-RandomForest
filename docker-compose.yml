@@ -8,30 +8,20 @@ services:
     cap_add:
         - NET_RAW
     container_name: zeek_container
-    network_mode: kafka_network
-
+    network_mode: host
     command: "bash -c 'mkdir -p /zeek/logs && cd /zeek/logs && zeek -i any local /usr/share/zeek/site/extract_logs.zeek'"
+
 
   zeek-log-merger:
     build: ./zeek/merging-logs
-    network_mode: kafka_network
+    network_mode: host
     dns: 
         - 8.8.8.8
     volumes:
       - ./data/logs:/logs 
     restart: unless-stopped
-  model:
-    container_name: model
-    build: 
-      context: ./infras/model
-      dockerfile: Dockerfile
-    environment:        
-      - BOOTSTRAP_SERVERS=kafka:9092
-      - INPUT_TOPIC=zeek-logs
-      - OUTPUT_TOPIC=alert
-      - MODEL_PATH=model/RandomForestModel.sav
-    networks:
-      - kafka_network
+
+
   mongoserver:
     image: mongo:latest
     hostname: mongodb
@@ -64,6 +54,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
+
   kafka:
     image: confluentinc/cp-kafka:7.8.0
     container_name: kafka
@@ -88,6 +80,23 @@ services:
     #   command: "bash -c 'echo Waiting for kafka to create topic && \
     #              sleep 20 && \
     #              kafka-topics --bootstrap-server kafka:9092 --topic zeek_logs --create --partitions 3 --replication-factor 1 --if-not-exists '"
+
+  
+  model:
+    container_name: model
+    depends_on:
+      - kafka
+    build: 
+      context: ./infras/model
+      dockerfile: Dockerfile
+    environment:        
+      - BOOTSTRAP_SERVERS=kafka:9092
+      - INPUT_TOPIC=zeek-logs
+      - OUTPUT_TOPIC=alert
+      - MODEL_PATH=/app/RandomForestModel.sav
+    networks:
+      - kafka_network
+    command: "bash -c 'echo Waiting for kafka to deploy.. && sleep 10 && exec /app/entrypoint.sh'"
 
   kafka-ui:
     container_name: kafka-ui
@@ -117,6 +126,7 @@ services:
                kafka-topics --create --topic zeek-logs --partitions 3 --replication-factor 1 --if-not-exists --bootstrap-server kafka:9092 && \
                kafka-topics --create --topic alert --partitions 3 --replication-factor 1 --if-not-exists --bootstrap-server kafka:9092 && \ 
                kafka-console-consumer --bootstrap-server kafka:9092 --topic zeek-logs --from-beginning --group zeek-log-consumer-group'"
+
   connect: 
     container_name: connect
     image: confluentinc/cp-kafka-connect:5.5.0
@@ -202,7 +212,4 @@ volumes:
 networks:
   kafka_network:
     name: kafka_network
-    external: true
   
-
-
