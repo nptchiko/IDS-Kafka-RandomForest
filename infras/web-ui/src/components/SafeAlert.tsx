@@ -1,23 +1,41 @@
 // import React from "react";
+import { useEffect, useState } from "react";
 
 interface Secure {
   id: string;
-  status: string
+  current_status: string;
+  timestamp: string
 }
 
-const SafeAlert = ({ status }: { status: Secure }) => (
+const SafeAlert = ({ status }: { status: Secure }) => {
+  const [currentStatus, setCurrentStatus] = useState<string | undefined>()
+  useEffect(() => {
+    console.log(status)
+    if (Array.isArray(status)) {
+      if (status.length > 0) {
+        console.log(status[status.length-1].current_status)
+        setCurrentStatus(status[status.length-1].current_status)
+      }
+    } else {
+      setCurrentStatus(status.current_status)
+    }
+  }, [status]);
+  
+  const statusColor = currentStatus === "safe" ? "green" : "red";
 
-  <>
-    <h2 className="title">Safe status</h2>
-    <div className="safe-box">
-      <div
-        className="safe-sub"
-        style={{ backgroundColor: (status.status == "safe" ? "green" : "red") }}
-      >
-        <p>{status.status}</p>
+  return (
+    <>
+      <h2 className="title">Safe status</h2>
+      <div className="safe-box">
+        <div
+          className="safe-sub"
+          style={{ backgroundColor: statusColor}}
+        >
+          <p>{currentStatus}</p>
+        </div>
       </div>
-    </div>
-  </>
-);
+    </>
+  );
+};
 
 export default SafeAlert;

@@ -19,7 +19,7 @@ function App() {
   // const [logs, setLogs] = useState<Array<{ protocol: string; status: string }>>([]);
 
   const [logsData, setLogsData] = useState<Array<{ id: string, protocol: string; status: string }>>([]);
-  const [statusInfo, setStatusInfo] = useState<{ id: string, status: string } | null>(null);
+  const [statusInfo, setStatusInfo] = useState<{ id: string, current_status: string, timestamp: string } | null>(null);
   const [missedBytesData, setMissedBytesData] = useState<Array<{ id: string, time: string; missed_bytes: number }>>([]);
   const [tlsPieData, setTlsPieData] = useState<Array<{ id: string, name: string; value: number }>>([]);
 
@@ -57,7 +57,7 @@ function App() {
           <TlsPieChart pieData={tlsPieData} />
         </div>
         <div className="col box flex justify-center items-center">
-          <SafeAlert status={statusInfo || { id: 'defaultId', status: 'unknown' }} />
+          <SafeAlert status={statusInfo || { id: 'defaultId', current_status: 'unknown', timestamp: 'unknow' }} />
         </div>
       </div>
       <div className="row">
