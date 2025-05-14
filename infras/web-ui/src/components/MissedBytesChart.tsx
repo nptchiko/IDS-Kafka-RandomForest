@@ -1,4 +1,5 @@
 // import React from "react";
+import { useEffect, useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 
 interface MissedBytesData {
@@ -7,11 +8,21 @@ interface MissedBytesData {
   missed_bytes: number;
 }
 
-const MissedBytesChart = ({missedBytesData}:{missedBytesData: MissedBytesData[]}) => (
-  <div>
+const MissedBytesChart = ({missedBytesData}:{missedBytesData: MissedBytesData}) => {
+  const [internalMissedBytesData, setinternalMissedBytesData] = useState<MissedBytesData[]>([]);
+  
+    useEffect(() => {
+      if (missedBytesData) {
+        setinternalMissedBytesData((prevData) => [...prevData, missedBytesData]);
+        console.log('Missed bytes data - Dữ liệu cập nhật:', [...internalMissedBytesData, missedBytesData]);
+      }
+    }, [missedBytesData]);
+
+  return (
+    <div>
     <h2 className="title">This chart for missed_bytes realtime</h2>
     <ResponsiveContainer width="100%" height={200}>
-      <AreaChart data={missedBytesData}>
+      <AreaChart data={internalMissedBytesData}>
         <XAxis dataKey="time" />
         <YAxis />
         <RechartsTooltip />
@@ -19,6 +30,7 @@ const MissedBytesChart = ({missedBytesData}:{missedBytesData: MissedBytesData[]}
       </AreaChart>
     </ResponsiveContainer>
   </div>
-);
+  );
+};
 
 export default MissedBytesChart;

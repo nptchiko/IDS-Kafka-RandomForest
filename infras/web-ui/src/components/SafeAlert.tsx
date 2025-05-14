@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 interface Secure {
   id: string;
   current_status: string;
-  timestamp: string
 }
 
 const SafeAlert = ({ status }: { status: Secure }) => {

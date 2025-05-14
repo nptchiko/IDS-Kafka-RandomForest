@@ -18,20 +18,22 @@ function App() {
 
   // const [logs, setLogs] = useState<Array<{ protocol: string; status: string }>>([]);
 
-  const [logsData, setLogsData] = useState<Array<{ id: string, protocol: string; status: string }>>([]);
-  const [statusInfo, setStatusInfo] = useState<{ id: string, current_status: string, timestamp: string } | null>(null);
-  const [missedBytesData, setMissedBytesData] = useState<Array<{ id: string, time: string; missed_bytes: number }>>([]);
-  const [tlsPieData, setTlsPieData] = useState<Array<{ id: string, name: string; value: number }>>([]);
+  const [logsData, setLogsData] = useState<{ id: string, protocol: string; status: string }>();
+  const [missedBytesData, setMissedBytesData] = useState<{ id: string, time: string; missed_bytes: number }>();
+  const [statusInfo, setStatusInfo] = useState<{ id: string, current_status: string } | null>(null);
+  const [tlsPieData, setTlsPieData] = useState<{ id: string, name: string; value: number }>();
 
   useEffect(() => {
     Socket.on('status_data', (payload) => {
-      console.log('Received status data:', payload);
+      console.log('Received status:', payload.data);
 
       if (payload && payload.data) {
-        setLogsData(payload.data.logsData || []);
-        setMissedBytesData(payload.data.missedBytesData.map((item: { timestamp: any; missed_bytes: any; }) => ({ time: item.timestamp, missed: item.missed_bytes })) || []);
-        setStatusInfo(payload.data.statusInfo || null);
-        setTlsPieData(payload.data.tlsPieData || []);
+        payload.data.statusInfo.map((p: any) => {
+          setLogsData({ "id": p["_id"], "protocol": p["protocol"], "status": p["current_status"] });
+          setMissedBytesData({ "id": p["_id"], "time": p["time"], "missed_bytes": p["current_status"] });
+          setStatusInfo({ "id": p["_id"], "current_status": p["current_status"] });
+          setTlsPieData({ "id": p["_id"], "name": p["protocol"], "value": p["missed_bytes"] });
+        })
       }
     });
 
@@ -40,32 +42,37 @@ function App() {
     };
   }, []);
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setLogs((prev) => [
-  //       ...prev,
-  //       { protocol: "TLS1.2", status: "Safe" },
-  //     ]);
-  //   }, 5000);
-  //   return () => clearInterval(interval);
-  // }, []);
+  useEffect(() => {
+    if (logsData) {
+      console.log("✅ Logs đã cập nhật:", logsData);
+    }
+    if (missedBytesData) {
+      console.log("✅ Missed Bytes đã cập nhật:", missedBytesData);
+    }
+    if (statusInfo) {
+      console.log("✅ Status Info đã cập nhật:", statusInfo);
+    }
+    if (tlsPieData) {
+      console.log("✅ Pie Chart Data đã cập nhật:", tlsPieData);
+    }
+  }, [logsData, missedBytesData, statusInfo, tlsPieData]);
 
   return (
     <div className="container">
       <div className="row">
         <div className="col box">
-          <TlsPieChart pieData={tlsPieData} />
+          <TlsPieChart pieData={tlsPieData || { id: "defaultId", name: "unknow", value: 0 }} />
         </div>
         <div className="col box flex justify-center items-center">
-          <SafeAlert status={statusInfo || { id: 'defaultId', current_status: 'unknown', timestamp: 'unknow' }} />
+          <SafeAlert status={statusInfo || { id: 'defaultId', current_status: 'unknown' }} />
         </div>
       </div>
       <div className="row">
         <div className="col box">
-          <MissedBytesChart missedBytesData={missedBytesData} />
+          <MissedBytesChart missedBytesData={missedBytesData || { id: 'defaultId', time: 'unknown', missed_bytes: 0 }} />
         </div>
         <div className="col box">
-          <RealtimeTable logs={logsData} />
+          <RealtimeTable log={logsData || { id: "defaultId", protocol: 'unknown', status: 'unknown' }} />
         </div>
       </div>
     </div>

@@ -16,10 +16,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 MONGO_URL = 'mongodb://admin:admin@mongodb:27017/test?authSource=admin'
 MONGO_DB = 'test'
-COLLECTIONS = ["tls_pie_data", "status_info", "missed_bytes_data", "logs_data"]
 
-client = MongoClient(MONGO_URL)
-db = client[MONGO_DB]
 
 @app.route('/')
 def health_check():
@@ -41,6 +38,8 @@ def objectid_to_str(obj):
 
 def fetch_mongo_data(collection_name):
     try:
+        client = MongoClient(MONGO_URL)
+        db = client[MONGO_DB]
         collection = db[collection_name]
         data = list(collection.find({}))
 
@@ -58,53 +57,25 @@ def fetch_mongo_data(collection_name):
 
 
 def emit_data():
-    tls_pie_data = fetch_mongo_data("tls_pie_data")
     status_info = fetch_mongo_data("status_info")
-    missed_bytes_data = fetch_mongo_data("missed_bytes_data")
-    logs_data = fetch_mongo_data("logs_data")
 
-    print("\nTLS Pie Data:", tls_pie_data)
-    print("\nMissed Bytes Data:", missed_bytes_data)
-    print("\nLogs Data:", logs_data)
-    print("\nStatus info: ", status_info)
+    print("\nNumber of data in mongo: ", len(status_info))
 
-    current_status = None
-    if status_info and len(status_info) > 0 and 'current_status' in status_info[len(status_info)-1]:
-        current_status = status_info[len(status_info)-1]
-        print("\nStatus info:", current_status)
-    else:
-        print("Warning: Could not retrieve 'current_status' from status_info.")
-
-    new_tls_pie = SocketService.extract_new_records(
-        "tls_pie_data", tls_pie_data)
     new_status_info = SocketService.extract_new_records(
         "status_info", status_info)
-    new_missed_bytes = SocketService.extract_new_records(
-        "missed_bytes_data", missed_bytes_data)
-    new_logs = SocketService.extract_new_records("logs_data", logs_data)
 
     status_data = {
-        'tlsPieData': tls_pie_data,
-        'statusInfo': current_status,
-        'missedBytesData': missed_bytes_data,
-        'logsData': logs_data
+        'statusInfo': new_status_info,
     }
-    print("\nNumber of status data: ", len(status_data))
+
+    print("New status data: ", len(status_data['statusInfo']))
 
     # Compare with previous data
     if SocketService.is_data_changed(status_data):
-        if any([new_logs, new_tls_pie, new_missed_bytes, new_status_info]):
-            status_data = {
-                'tlsPieData': new_tls_pie,
-                'statusInfo': new_status_info,
-                'missedBytesData': new_missed_bytes,
-                'logsData': new_logs
-            }
         socketio.emit('status_data', {'data': status_data})
         print("Data was changed, emit new data")
     else:
         print("No data change.")
-
 
 def poll_mongo_changes():
     while True:

@@ -128,7 +128,7 @@ services:
 
   connect: 
     container_name: connect
-    image: confluentinc/cp-kafka-connect:5.5.0
+    # image: confluentinc/cp-kafka-connect:5.5.0
     hostname: connect
     build:
       context: ./kafka/kafka-connect/
