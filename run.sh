@@ -1,4 +1,4 @@
-!#/bin/bash
+#!/bin/bash
 
 echo 'Check to stop composing docker'
 docker compose down --remove-orphans --volumes
