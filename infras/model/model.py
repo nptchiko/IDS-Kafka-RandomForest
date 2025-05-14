@@ -3,7 +3,7 @@ import pickle
 import pandas as pd
 import numpy as np
 import argparse
-from datetime import datetime
+from datetime import datetime, timezone
 from kafka import KafkaConsumer, KafkaProducer
 from io import StringIO
 
@@ -177,9 +177,13 @@ class KafkaMLProcessor:
 
     def create_alert(self, log_entry, prediction_result):
         """Create alert message based on log entry and prediction."""
+        log = json.loads(log_entry)
         alert = {
-            'timestamp': datetime.now().isoformat(),
+            'time': datetime.now(timezone.utc).astimezone().strftime("%X"),
             'current_status': 'safe' if prediction_result['prediction'] == 1 else 'unsafe',
+            'status': 'Safe' if prediction_result['prediction'] == 1 else 'Unsafe',
+            'missed_bytes': 0 if log['missed_bytes'] is None else log['missed_bytes'],
+            "protocol": log['version']
         }
 
         return alert
@@ -193,7 +197,7 @@ class KafkaMLProcessor:
             for message in self.consumer:
                 try:
                     log_entry = message.value
-
+                    print('log entry type', type(log_entry))
                     # Check if log entry has required fields
                     if not all(feature in log_entry for feature in self.features):
                         print(f"Skipping log entry - missing required fields")
@@ -217,7 +221,7 @@ class KafkaMLProcessor:
 
                     # Only send alert if traffic is malicious (prediction = 0)
                     self.producer.send(self.output_topic, alert)
-                    print(f"""Message produced at {alert['timestamp']} with  result {
+                    print(f"""Message produced at {alert['time']} with  result {
                           alert['current_status']}""")
 
                 except Exception as e:
