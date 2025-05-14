@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
 import yaml
-from backend.kafka.producer import producer
 
 """Run in commandline by: PYTHONPATH=/home/minhminh/workspace/CNPM/ pytest test_producer.py"""
 
