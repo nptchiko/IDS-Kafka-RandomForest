@@ -1,0 +1,30 @@
+{
+    "name": "dynamic-routing",
+    "config": {
+        "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
+        "topics": "kafka-topic",
+        "connection.uri": "mongodb://admin@admin://mongodb:27017",
+        "database": "mongodb-database",
+        "collection": "",
+
+        // define how sink connector should determine the _id
+        // for each document it writes to mongodb
+
+        // default using Bson
+        "document.id.strategy": "com.mongodb.kafka.connect.sink.processor.id.strategy.BsonOidStrategy",
+
+        // overwrite existing values in the _id field
+        "document.id.strategy.overwrite.existing": "false",
+
+        "writemodel.strategy": "com.mongodb.kafka.connect.sink.writemodel.strategy.DefaultWriteModelStrategy",
+    
+        "post.processor.chain": "com.mongodb.kafka.connect.sink.processor.DocumentIdAdder,com.mongodb.kafka.connect.sink.processor.KafkaMetaAdder,com.mongodb.kafka.connect.sink.processor.field.projection.FieldProjector",
+        "field.projector.type": "AllowList",
+        "field.projection.list": "targetCollection,data",
+    
+        "collection.handler": "com.mongodb.kafka.connect.sink.cdc.mongodb.ChangeStreamHandler",
+        "change.data.capture.handler": "com.mongodb.kafka.connect.sink.cdc.mongodb.ChangeStreamHandler",
+        "document.id.strategy.partial.value.projection.type": "AllowList",
+        "document.id.strategy.partial.value.projection.list": "targetCollection,data"
+    }
+}
