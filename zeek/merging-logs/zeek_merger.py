@@ -4,17 +4,10 @@ import time
 import os
 import json
 from datetime import datetime
-# from kafka import KafkaProducer
 
 PATH = '/logs/'
-FILE = '/logs/init_dataset.json'
 OUTPUT_FILE = '/logs/dataset.json'
 CHECK_INTERVAL = 10  # seconds between checks for file changes
-
-# producer = KafkaProducer(
-#     bootstrap_servers=['localhost:9092'], # Kafka server
-#     value_serializer=lambda x: json.dumps(x).encode('utf-8') # Method to serialize data
-# )
 
 # Store last modification times
 last_modified = {
@@ -78,8 +71,8 @@ def merge_logs():
             "Warning: x509.log is empty or couldn't be read. Continuing without x509 data.")
 
     # Merge DataFrames
-    merged_df = pd.merge(df_conn, df_ssl, on=["ts"], how="outer")
-    merged_df = pd.merge(merged_df, df_http, on=["ts"], how="outer")
+    merged_df = pd.merge(df_conn, df_ssl, on=["ts", 'id.orig_h', 'id.resp_h'], how="outer")
+    merged_df = pd.merge(merged_df, df_http, on=["ts", 'id.orig_h', 'id.resp_h'], how="outer")
 
     # Only merge x509 if it has data
     if not df_x509.empty:
@@ -123,7 +116,7 @@ def merge_logs():
 
     # Filter columns based on the specified list
     filter_columns = [
-        'ts', 'missed_bytes', 'version', 'cipher', 'curve', 'resumed',
+        'ts', 'missed_bytes', 'version', 'cipher', 'curve', 'resumed', 'proto', 'id.orig_h', 'id.resp_h', 
         'last_alert', 'established', 'sni_matches_cert', 'username', 'password',
         'certificate.not_valid_before', 'certificate.not_valid_after',
         'certificate.sig_alg', 'certificate.key_length', 'certificate.key'
@@ -184,7 +177,7 @@ def merge_logs():
             filtered_df.columns = unique_columns
 
         # Replace NaN values with empty strings (instead of null)
-        filtered_df = filtered_df.replace(["", "-", "NULL", None], pd.NA, inplace=True)
+        filtered_df = filtered_df.replace({np.nan: ""})
 
         # Convert to records with proper column names
         records = filtered_df.to_dict('records')
@@ -193,17 +186,19 @@ def merge_logs():
         with open(OUTPUT_FILE, 'w') as f:
             for record in records:
                 f.write(json.dumps(record) + '\n')
-        
+
         print(f"""[{datetime.now()}] Successfully saved filtered data to {
               OUTPUT_FILE} in JSON Lines format""")
         print(f"Number of records: {len(records)}")
         return True
 
-       
+        print(f"[{datetime.now()}] Successfully saved merged data to {OUTPUT_FILE}")
+
+        return True
     except Exception as e:
         print(f"Error saving JSON file: {e}")
         return False
-    
+
 
 def files_modified():
     """Check if any input files have been modified."""
@@ -254,7 +249,7 @@ def main():
 
     # Initial merge
     merge_logs()
-   
+
     try:
         while True:
             time.sleep(CHECK_INTERVAL)

@@ -7,13 +7,10 @@
         "database": "mongodb-database",
         "collection": "",
 
-        // define how sink connector should determine the _id
-        // for each document it writes to mongodb
-
-        // default using Bson
+       
         "document.id.strategy": "com.mongodb.kafka.connect.sink.processor.id.strategy.BsonOidStrategy",
 
-        // overwrite existing values in the _id field
+        
         "document.id.strategy.overwrite.existing": "false",
 
         "writemodel.strategy": "com.mongodb.kafka.connect.sink.writemodel.strategy.DefaultWriteModelStrategy",
