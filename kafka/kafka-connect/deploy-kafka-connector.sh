@@ -7,4 +7,5 @@ done
 echo "\n --------------Creating connectors..."
 for filename in ./*.json; do
     curl -X POST -H "Content-Type: application/json" -d @$filename http://localhost:8083/connectors
+    echo "\n"
 done

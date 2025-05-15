@@ -15,8 +15,6 @@ services:
   zeek-log-merger:
     build: ./zeek/merging-logs
     network_mode: host
-    dns: 
-        - 8.8.8.8
     volumes:
       - ./data/logs:/logs 
     restart: unless-stopped
@@ -89,6 +87,7 @@ services:
       context: ./infras/model
       dockerfile: Dockerfile
     environment:        
+      - TZ=Asia/Ho_Chi_Minh
       - BOOTSTRAP_SERVERS=kafka:9092
       - INPUT_TOPIC=zeek-logs
       - OUTPUT_TOPIC=alert
@@ -100,10 +99,10 @@ services:
   kafka-ui:
     container_name: kafka-ui
     image: provectuslabs/kafka-ui:latest
-    networks:
-        - kafka_network
     ports:
       - 8088:8080
+    networks:
+        - kafka_network
     depends_on:
       - kafka 
     environment:
