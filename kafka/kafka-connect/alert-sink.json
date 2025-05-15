@@ -1,15 +1,28 @@
 {
-"name": "mongo-alert",
-   "config": {
-     "connector.class":"com.mongodb.kafka.connect.MongoSinkConnector",
-     "tasks.max":"1",
-     "topics":"alert,zeek-logs",
-     "connection.uri":"mongodb://admin:admin@mongodb:27017",
-     "database":"test",
-     "collection":"status_info",
-     "key.converter": "org.apache.kafka.connect.json.JsonConverter",
-     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
-     "value.converter.schemas.enable": "false",
-      "key.converter.schemas.enable": "false"
-    }
+  "name": "mongo-shared-connector",
+  "config": {
+    "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
+    "tasks.max": "1",
+    "topics": "alert,zeek-logs",
+
+    "topic.override.alert.collection": "shared_logs",
+    "topic.override.zeek-logs.collection": "shared_logs",
+
+    "connection.uri": "mongodb://admin:admin@mongodb:27017",
+    "database": "test",
+
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+
+    "transforms": "addTopicField",
+    "transforms.addTopicField.type": "org.apache.kafka.connect.transforms.InsertField$Value",
+    "transforms.addTopicField.topic.field": "source_topic",
+
+    "writemodel.strategy": "com.mongodb.kafka.connect.sink.writemodel.strategy.ReplaceOneBusinessKeyStrategy",
+    "document.id.strategy": "com.mongodb.kafka.connect.sink.processor.id.strategy.PartialValueStrategy",
+    "document.id.strategy.partial.value.projection.list": "_id",
+    "document.id.strategy.partial.value.projection.type": "AllowList"
+  }
 }
