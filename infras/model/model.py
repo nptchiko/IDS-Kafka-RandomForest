@@ -183,7 +183,10 @@ class KafkaMLProcessor:
             'current_status': 'safe' if prediction_result['prediction'] == 1 else 'unsafe',
             'status': 'Safe' if prediction_result['prediction'] == 1 else 'Unsafe',
             'missed_bytes': 0 if log['missed_bytes'] is None else log['missed_bytes'],
-            "protocol": log['version']
+            "proto": log['proto'],
+            "version": log['version'],
+            "id.orig_h": log['id.orig_h'],
+            "id.resp_h": log['id.resp_h'],
         }
 
         return alert

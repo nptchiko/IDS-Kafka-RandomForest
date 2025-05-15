@@ -12,14 +12,14 @@ const MissedBytesChart = ({missedBytesData}:{missedBytesData: MissedBytesData}) 
   const [internalMissedBytesData, setinternalMissedBytesData] = useState<MissedBytesData[]>([]);
   
     useEffect(() => {
-      if (missedBytesData) {
+      if (missedBytesData && missedBytesData.id != 'unknown', missedBytesData.time != 'unknown' ) {
         setinternalMissedBytesData((prevData) => [...prevData, missedBytesData]);
         console.log('Missed bytes data - Dữ liệu cập nhật:', [...internalMissedBytesData, missedBytesData]);
       }
     }, [missedBytesData]);
 
   return (
-    <div>
+    <div className="full-screen">
     <h2 className="title">This chart for missed_bytes realtime</h2>
     <ResponsiveContainer width="100%" height={200}>
       <AreaChart data={internalMissedBytesData}>

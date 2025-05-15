@@ -27,7 +27,7 @@ Everything that OK.
 Let's check database in mongosh
 
 ```
-docker exec -it my-mongodb mongosh -u admin -p admin --authenticationDatabase admin
+docker exec -it mongoserver mongosh -u admin -p admin --authenticationDatabase admin
 ```
 You login in database with admin
 

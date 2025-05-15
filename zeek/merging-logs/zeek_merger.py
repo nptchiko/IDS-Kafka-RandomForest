@@ -71,8 +71,8 @@ def merge_logs():
             "Warning: x509.log is empty or couldn't be read. Continuing without x509 data.")
 
     # Merge DataFrames
-    merged_df = pd.merge(df_conn, df_ssl, on=["ts"], how="outer")
-    merged_df = pd.merge(merged_df, df_http, on=["ts"], how="outer")
+    merged_df = pd.merge(df_conn, df_ssl, on=["ts", 'id.orig_h', 'id.resp_h'], how="outer")
+    merged_df = pd.merge(merged_df, df_http, on=["ts", 'id.orig_h', 'id.resp_h'], how="outer")
 
     # Only merge x509 if it has data
     if not df_x509.empty:
@@ -116,7 +116,7 @@ def merge_logs():
 
     # Filter columns based on the specified list
     filter_columns = [
-        'ts', 'missed_bytes', 'version', 'cipher', 'curve', 'resumed',
+        'ts', 'missed_bytes', 'version', 'cipher', 'curve', 'resumed', 'proto', 'id.orig_h', 'id.resp_h', 
         'last_alert', 'established', 'sni_matches_cert', 'username', 'password',
         'certificate.not_valid_before', 'certificate.not_valid_after',
         'certificate.sig_alg', 'certificate.key_length', 'certificate.key'

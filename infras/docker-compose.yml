@@ -27,13 +27,13 @@ services:
       - FLASK_ENV=production
   model:
     build: 
-      context: ./model
+      context: ./infras/model
       dockerfile: Dockerfile
     environment:        
       - BOOTSTRAP_SERVERS=kafka:9092
       - INPUT_TOPIC=zeek-logs
       - OUTPUT_TOPIC=alert
-      - MODEL_PATH=model/RandomForestModel.sav
+      - MODEL_PATH=/app/RandomForestModel.sav
     networks:
       - app-network
   mongoserver:

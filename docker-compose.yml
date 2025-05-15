@@ -11,15 +11,14 @@ services:
     network_mode: host
     command: "bash -c 'mkdir -p /zeek/logs && cd /zeek/logs && zeek -i any local /usr/share/zeek/site/extract_logs.zeek'"
 
-
+  
   zeek-log-merger:
     build: ./zeek/merging-logs
     network_mode: host
     volumes:
       - ./data/logs:/logs 
     restart: unless-stopped
-
-
+    
   mongoserver:
     image: mongo:latest
     hostname: mongodb
@@ -113,7 +112,7 @@ services:
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: first
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://connect:8083
       DYNAMIC_CONFIG_ENABLED: 'true'
-  
+
   kafka-init-topics:
     image: confluentinc/cp-kafka:7.2.1
     container_name: init-topics
@@ -125,7 +124,8 @@ services:
                kafka-topics --create --topic zeek-logs --partitions 3 --replication-factor 1 --if-not-exists --bootstrap-server kafka:9092 && \
                kafka-topics --create --topic alert --partitions 3 --replication-factor 1 --if-not-exists --bootstrap-server kafka:9092 && \ 
                kafka-console-consumer --bootstrap-server kafka:9092 --topic zeek-logs --from-beginning --group zeek-log-consumer-group'"
-
+  
+    
   connect: 
     container_name: connect
     # image: confluentinc/cp-kafka-connect:5.5.0

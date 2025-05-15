@@ -26,7 +26,8 @@ services:
       - mongodb:/data/db
       - mongoconfig:/data/configdb
     networks:
-      - kafka_network 
+      - kafka_network
+    
   # my-mongoclient:
   #   # build will get tagged with 'image'
   #   build: ./my-mongoclient

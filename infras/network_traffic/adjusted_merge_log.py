@@ -188,7 +188,7 @@ def merge_logs():
         # Write each record as a separate JSON object on its own line (JSONL format)
         with open(OUTPUT_FILE, 'w') as f:
             for record in records:
-                f.write(json.dumps(record) + '\n')
+                f.write(json.dumps(record).encode('utf-8'))
 
         print(f"[{datetime.now()}] Successfully saved filtered data to {
               OUTPUT_FILE} in JSON Lines format")
