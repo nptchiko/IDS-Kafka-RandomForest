@@ -1,7 +1,0 @@
-{
-    "workbench.editor.enablePreview": true,
-    "json.schemas": [
-
-    ],
-    "python.REPL.enableREPLSmartSend": false
-}
