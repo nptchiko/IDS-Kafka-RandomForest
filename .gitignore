@@ -352,3 +352,4 @@ cython_debug/
 ./zeek/logs/*
 !zeek/logs/extract_logs.zeek
 
+frontend

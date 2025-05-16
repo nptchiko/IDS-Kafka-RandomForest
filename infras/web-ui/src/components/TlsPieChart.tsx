@@ -10,14 +10,13 @@ interface TlsPieData {
 
 const COLORS = ["#00BFFF", "#32CD32", "#FFD700", "#FF7F7F"];
 
-const TlsPieChart = ({ pieData }: { pieData: TlsPieData[] }) => {
+const TlsPieChart = ( {pieData} : { pieData: TlsPieData }) => {
   const [internalPieData, setInternalPieData] = useState<TlsPieData[]>([]);
 
   useEffect(() => {
-    if (pieData && pieData.length > 0) {
-      // setInternalPieData((prevData) => [...prevData, ...pieData]);
-      setInternalPieData(pieData)
-      console.log('TlsPieChart - Dữ liệu cập nhật:', [...internalPieData, ...pieData]);
+    if (pieData) {
+      setInternalPieData((prevData) => [...prevData, pieData]);
+      console.log('TlsPieChart - Dữ liệu cập nhật:', [...internalPieData, pieData]);
     }
   }, [pieData]);
 

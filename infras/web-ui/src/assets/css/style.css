@@ -39,6 +39,15 @@ body {
 
 .col {
     box-sizing: border-box;
+    flex-grow: 1;
+}
+
+.col-8 {
+    width: 66.6666667%
+}
+
+.col-4 {
+    width: 33.3333333%;
 }
 
 .box {
@@ -130,7 +139,13 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
+}
+
+th {
+    top: 0px;
+    border: 1px #000 ;
+    background: white; 
+    /* z-index: 1; */
 }
 
 th,
@@ -153,4 +168,8 @@ th {
     .col {
         flex: 0 0 100%;
     }
+}
+
+.full-screen {
+    width: 100%;
 }

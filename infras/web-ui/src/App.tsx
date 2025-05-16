@@ -1,37 +1,26 @@
 import { useEffect, useState } from "react";
 import "./assets/css/style.css"
-import TlsPieChart from "./components/TlsPieChart";
-import SafeAlert from "./components/SafeAlert";
 import MissedBytesChart from "./components/MissedBytesChart";
-import RealtimeTable from "./components/RealtimeTable";
+import CaptureFlowTable from "./components/CaptureFlowTable";
 import Socket from "./socket/socket";
-
-// interface RealTimeData {
-//   id: number;
-//   key: string;
-//   value: string;
-// }
+import SafeAlert from "./components/SafeAlert";
 
 
 function App() {
-  // const [data, setData] = useState<RealTimeData | null>(null)
-
-  // const [logs, setLogs] = useState<Array<{ protocol: string; status: string }>>([]);
-
-  const [logsData, setLogsData] = useState<Array<{ id: string, protocol: string; status: string }>>([]);
-  const [statusInfo, setStatusInfo] = useState<{ id: string, status: string } | null>(null);
-  const [missedBytesData, setMissedBytesData] = useState<Array<{ id: string, time: string; missed_bytes: number }>>([]);
-  const [tlsPieData, setTlsPieData] = useState<Array<{ id: string, name: string; value: number }>>([]);
+  const [safeAlert, setSafeAlert] = useState<{ id: string, current_status: string}>();
+  const [missedBytesData, setMissedBytesData] = useState<{ id: string, time: string; missed_bytes: number }>();
+  const [flowData, setFlowData] = useState<{time: String,src_ip: String,dst_ip: String,protocol: String,version: String,status: String}>();
 
   useEffect(() => {
     Socket.on('status_data', (payload) => {
-      console.log('Received status data:', payload);
+      console.log('Received status:', payload.data);
 
       if (payload && payload.data) {
-        setLogsData(payload.data.logsData || []);
-        setMissedBytesData(payload.data.missedBytesData.map((item: { timestamp: any; missed_bytes: any; }) => ({ time: item.timestamp, missed: item.missed_bytes })) || []);
-        setStatusInfo(payload.data.statusInfo || null);
-        setTlsPieData(payload.data.tlsPieData || []);
+        payload.data.statusInfo.map((p: any) => {
+          setSafeAlert({ "id": p["_id"], "current_status": p["current_status"] });
+          setMissedBytesData({ "id": p["_id"], "time": p["time"], "missed_bytes": p["current_status"] });
+          setFlowData({time: p["time"], src_ip: p["id.orig_h"], dst_ip: p["id.orig_h"], protocol: p["proto"], version: p["version"], status: p["current_status"]})
+        })
       }
     });
 
@@ -40,33 +29,31 @@ function App() {
     };
   }, []);
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setLogs((prev) => [
-  //       ...prev,
-  //       { protocol: "TLS1.2", status: "Safe" },
-  //     ]);
-  //   }, 5000);
-  //   return () => clearInterval(interval);
-  // }, []);
+  useEffect(() => {
+    if (safeAlert) {
+      console.log("✅ Logs đã cập nhật:", safeAlert);
+    }
+    if (missedBytesData) {
+      console.log("✅ Missed Bytes đã cập nhật:", missedBytesData);
+    }
+    if (flowData) {
+      console.log("✅ Missed Bytes đã cập nhật:", flowData);
+    }
+  }, [safeAlert, missedBytesData, flowData]);
 
   return (
     <div className="container">
+
       <div className="row">
-        <div className="col box">
-          <TlsPieChart pieData={tlsPieData} />
+        <div className="col">
+          <MissedBytesChart missedBytesData={missedBytesData || { id: 'defaultId', time: 'unknown', missed_bytes: 0 }} />
         </div>
-        <div className="col box flex justify-center items-center">
-          <SafeAlert status={statusInfo || { id: 'defaultId', status: 'unknown' }} />
+        <div className="col col-3">
+          <SafeAlert status={safeAlert || { id: 'defaultId', current_status: 'unknown'}} />
         </div>
       </div>
       <div className="row">
-        <div className="col box">
-          <MissedBytesChart missedBytesData={missedBytesData} />
-        </div>
-        <div className="col box">
-          <RealtimeTable logs={logsData} />
-        </div>
+        <CaptureFlowTable data={flowData || {time: "unknown",src_ip: "unknown",dst_ip: "unknown",protocol: "unknown",version: "unknown",status: "unknown"}} />
       </div>
     </div>
   );

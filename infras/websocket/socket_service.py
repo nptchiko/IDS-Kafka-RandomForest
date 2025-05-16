@@ -6,10 +6,7 @@ class SocketService:
     previous_hash = None
 
     previous_ids = {
-        "tls_pie_data": set(),
         "status_info": set(),
-        "missed_bytes_data": set(),
-        "logs_data": set()
     }
 
     @staticmethod
@@ -41,3 +38,8 @@ class SocketService:
 
         # Return new data
         return [doc for doc in current_data if str(doc["_id"]) in new_ids]
+    
+    @staticmethod
+    def extract_data_from_db(status_data):
+        newest_info = status_data[len(status_data)-1]
+        return newest_info

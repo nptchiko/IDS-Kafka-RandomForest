@@ -20,4 +20,5 @@ services:
           - ../data/logs:/logs 
         build:
             context: merging-logs/
+        network_mode: host
 
