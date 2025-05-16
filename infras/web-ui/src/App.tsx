@@ -9,7 +9,7 @@ import SafeAlert from "./components/SafeAlert";
 function App() {
   const [safeAlert, setSafeAlert] = useState<{ id: string, current_status: string}>();
   const [missedBytesData, setMissedBytesData] = useState<{ id: string, time: string; missed_bytes: number }>();
-  const [flowData, setFlowData] = useState<{time: String,src_ip: String,dst_ip: String,protocol: String,version: String,status: String}>();
+  const [flowData, setFlowData] = useState<{id: String, time: String,src_ip: String,dst_ip: String,protocol: String,version: String,status: String}>();
 
   useEffect(() => {
     Socket.on('status_data', (payload) => {
@@ -19,7 +19,7 @@ function App() {
         payload.data.statusInfo.map((p: any) => {
           setSafeAlert({ "id": p["_id"], "current_status": p["current_status"] });
           setMissedBytesData({ "id": p["_id"], "time": p["time"], "missed_bytes": p["current_status"] });
-          setFlowData({time: p["time"], src_ip: p["id.orig_h"], dst_ip: p["id.resp_h"], protocol: p["proto"], version: p["version"], status: p["current_status"]})
+          setFlowData({id: p["_id"],time: p["time"], src_ip: p["id.orig_h"], dst_ip: p["id.resp_h"], protocol: p["proto"], version: p["version"], status: p["current_status"]})
         })
       }
     });
@@ -53,7 +53,7 @@ function App() {
         </div>
       </div>
       <div className="row">
-        <CaptureFlowTable data={flowData || {time: "unknown",src_ip: "unknown",dst_ip: "unknown",protocol: "unknown",version: "unknown",status: "unknown"}} />
+        <CaptureFlowTable data={flowData || {id: "unknown",time: "unknown",src_ip: "unknown",dst_ip: "unknown",protocol: "unknown",version: "unknown",status: "unknown"}} />
       </div>
     </div>
   );

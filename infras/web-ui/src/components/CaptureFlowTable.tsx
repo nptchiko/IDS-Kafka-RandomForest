@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 interface FlowData {
+    id: String
     time: String;
     src_ip: String;
     dst_ip: String;
@@ -14,14 +15,19 @@ const CaptureFlowTable = ({ data }: { data: FlowData }) => {
 
   useEffect(() => {
     if (data && 
-        data.time !== 'unknown' &&
-        data.src_ip !== 'unknown' &&
-        data.dst_ip !== 'unknown' &&
-        data.protocol !== 'unknown' &&
-        data.status !== 'unknown' 
+      data.id !== 'unknown' &&
+      data.time !== 'unknown' &&
+      data.src_ip !== 'unknown' &&
+      data.dst_ip !== 'unknown' &&
+      data.protocol !== 'unknown' &&
+      data.status !== 'unknown' 
     ) {
-        setInternalLogData((prevData) => [data, ...prevData]);
-      console.log('RealtimeLogtable - Dữ liệu cập nhật:', [...internalLogData, data]);
+      console.log('RealtimeLogtable - Dữ liệu cập nhật:', [data]);
+      setInternalLogData((prevData) => {
+        const updatedData = [data, ...prevData];
+        updatedData.sort((a, b) => parseInt(String(b.id), 16) - parseInt(String(a.id), 16));
+        return updatedData;
+      });
     }
   }, [data]);
 
