@@ -20,7 +20,7 @@ const RealtimeLogTable = ({ log }: { log: LogEntry }) => {
 
   return (
     <div>
-      <h2 className="title">This table show log realtime</h2>
+      <h2 className="title">Capture flow package table</h2>
       <div className="responsive-table">
 
         <table className="w-full table-auto border">

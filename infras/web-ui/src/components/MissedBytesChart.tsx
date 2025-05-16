@@ -20,7 +20,7 @@ const MissedBytesChart = ({missedBytesData}:{missedBytesData: MissedBytesData}) 
 
   return (
     <div className="full-screen">
-    <h2 className="title">This chart for missed_bytes realtime</h2>
+    <h2 className="title">Chart for missed bytes realtime</h2>
     <ResponsiveContainer width="100%" height={200}>
       <AreaChart data={internalMissedBytesData}>
         <XAxis dataKey="time" />
