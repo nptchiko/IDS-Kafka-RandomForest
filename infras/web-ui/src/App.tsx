@@ -19,7 +19,7 @@ function App() {
         payload.data.statusInfo.map((p: any) => {
           setSafeAlert({ "id": p["_id"], "current_status": p["current_status"] });
           setMissedBytesData({ "id": p["_id"], "time": p["time"], "missed_bytes": p["current_status"] });
-          setFlowData({time: p["time"], src_ip: p["id.orig_h"], dst_ip: p["id.orig_h"], protocol: p["proto"], version: p["version"], status: p["current_status"]})
+          setFlowData({time: p["time"], src_ip: p["id.orig_h"], dst_ip: p["id.resp_h"], protocol: p["proto"], version: p["version"], status: p["current_status"]})
         })
       }
     });

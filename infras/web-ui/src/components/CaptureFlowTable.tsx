@@ -20,14 +20,14 @@ const CaptureFlowTable = ({ data }: { data: FlowData }) => {
         data.protocol !== 'unknown' &&
         data.status !== 'unknown' 
     ) {
-        setInternalLogData((prevData) => [...prevData, data]);
+        setInternalLogData((prevData) => [data, ...prevData]);
       console.log('RealtimeLogtable - Dữ liệu cập nhật:', [...internalLogData, data]);
     }
   }, [data]);
 
   return (
     <div className="full-screen">
-      <h2 className="title">This table show log realtime</h2>
+      <h2 className="title">Table show log realtime</h2>
       <div className="responsive-table">
 
         <table className="w-full table-auto border">

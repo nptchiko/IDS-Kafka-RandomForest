@@ -24,7 +24,7 @@ const SafeAlert = ({ status }: { status: Secure }) => {
 
   return (
     <>
-      <h2 className="title">Safe status</h2>
+      <h2 className="title">Status</h2>
       <div className="safe-box">
         <div
           className="safe-sub"
