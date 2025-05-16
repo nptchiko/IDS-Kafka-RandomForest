@@ -6,19 +6,10 @@
 
 - We use **Docker** as main tool to deploy and containerize our systems modules.
 
-## Thứ tự để chạy docker:
-
-    zeek -> merge_logs -> db -> kafka -> kafka-connect script
-
 
 ## 📦 System Pipeline Overview
+![image](https://github.com/user-attachments/assets/6258fd8b-5261-4bc8-ab3d-2910496f7419)
 
-```
-graph TD
-    Zeek -->|Logs| Kafka --> PythonConsumer --> MongoDB
-    PythonConsumer --> DecisionTree --> WebSocketServer
-    WebSocketServer --> ReactFrontend
-```
 
 ---
 
@@ -39,58 +30,55 @@ graph TD
 ---
 
 ## ⚙️ System Requirements
-
-- Node.js ≥ 18  
-- Python ≥ 3.8  
-- Docker & Docker Compose  
-- MongoDB (via Docker)  
-- Zeek (for log generation)  
-- Kafka setup  
-- `nvm` (optional for node version management)
-
+- Docker & Docker Compose
+- [LazyDocker](https://github.com/jesseduffield/lazydocker) (Recommend) 
 ---
 
 ## 🚀 Quick Start
 
 ### 1. Clone the project
 ```bash
-git clone https://github.com/your-username/network-classifier.git
-cd network-classifier
+git clone https://github.com/nptchiko/IDS-Kafka-RandomForest.git
+cd IDS-Kafka-RandomForest
 ```
-
-
-### 2. 🐳 Start MongoDB via Docker
-Navigate to the MongoDB module:
-cd backend/database
-```
-docker compose up -d
-```
-Verify:
-```
-docker ps -a
-docker exec -it my-mongodb mongosh -u admin -p admin --authenticationDatabase admin
-```
-### 3. 🧠 Run ML Socket Server
-Navigate to the socket server:
-
+### 2. Grant permission and run script:
 
 ```
-cd backend/socket_server
-pip install -r requirements.txt
-python3 server.py
+chmod +x run.sh
+./run.sh
 ```
-This will open a socket at localhost:5000 that the frontend will connect to.
+Verify if system started successfully:
+```
+docker ps
+```
+![image](https://github.com/user-attachments/assets/63c046d9-8801-4a5f-9084-555a33ec16e6)
 
-### 4. 💻 Start Frontend
-Navigate to frontend folder:
+Or using LazyDocker:
+![image](https://github.com/user-attachments/assets/1d653d69-4b28-4cde-b7c8-aa2296cfc2df)
 
+### 3. 💻 Monitoring Kafka Health
+- Utilize available resource for Kafka UI, thanks to [Creator](https://github.com/provectus/kafka-ui)
+- You can check current status of Kafka such as:
+    - Topic:
+  ![image](https://github.com/user-attachments/assets/6ea91639-cac2-42e6-bdc6-ddc75486e21b)
+    - Consumer:
+  ![image](https://github.com/user-attachments/assets/3eee8e82-719a-4e08-ad2c-e4618f787e3b)
+    - Connectors:
+  ![image](https://github.com/user-attachments/assets/e63e2378-57b1-4bc6-81f2-34c63474c352)
+
+
+Visit: http://localhost:8088
+
+### 4. Check MongoDB Health 
+- Main collection is ***status_info***
+- Check its documents by running:
 ```
-cd frontend
-nvm use 18 # or install node 18+
-npm install
-npm run dev
+docker exec -it mongoserver mongosh -u admin -p admin --authenticationDatabase admin
+show collections
+db.status_info.find().pretty()
 ```
-Visit: http://localhost:5173
+### 5. Another service
+- Use lazydocker to check their logs
 
 ### 🧬 Data Flow
 
