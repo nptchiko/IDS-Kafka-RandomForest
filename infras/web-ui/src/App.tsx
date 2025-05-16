@@ -18,7 +18,7 @@ function App() {
       if (payload && payload.data) {
         payload.data.statusInfo.map((p: any) => {
           setSafeAlert({ "id": p["_id"], "current_status": p["current_status"] });
-          setMissedBytesData({ "id": p["_id"], "time": p["time"], "missed_bytes": p["current_status"] });
+          setMissedBytesData({ "id": p["_id"], "time": p["time"], "missed_bytes": p["missed_bytes"] });
           setFlowData({id: p["_id"],time: p["time"], src_ip: p["id.orig_h"], dst_ip: p["id.resp_h"], protocol: p["proto"], version: p["version"], status: p["current_status"]})
         })
       }
@@ -37,7 +37,7 @@ function App() {
       console.log("✅ Missed Bytes đã cập nhật:", missedBytesData);
     }
     if (flowData) {
-      console.log("✅ Missed Bytes đã cập nhật:", flowData);
+      console.log("✅ Table flow cập nhật:", flowData);
     }
   }, [safeAlert, missedBytesData, flowData]);
 
